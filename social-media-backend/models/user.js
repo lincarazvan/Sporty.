@@ -15,6 +15,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  roleId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 2 // presupunem că 2 este rolul de utilizator normal
+  }
 });
+
+const Role = require('./role');
+User.belongsTo(Role, { foreignKey: 'roleId' });
 
 module.exports = User;

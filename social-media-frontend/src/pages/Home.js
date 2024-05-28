@@ -3,8 +3,8 @@ import React from 'react';
 const Home = () => {
   return (
     <div>
-      <h1>Home Page</h1>
-      {/* Contenutul paginii principale */}
+      <h1>Welcome to Sports Social Media</h1>
+      <p>Your hub for all things sports.</p>
     </div>
   );
 };

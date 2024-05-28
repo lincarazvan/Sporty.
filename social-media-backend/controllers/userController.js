@@ -2,6 +2,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/user');
+const Post = require('../models/post'); // Adaugă importurile necesare
+const Comment = require('../models/comment'); // Adaugă importurile necesare
+const Follow = require('../models/follow'); // Adaugă importurile necesare
+const Notification = require('../models/notification'); // Adaugă importurile necesare
+const PrivacySetting = require('../models/privacySetting'); // Adaugă importurile necesare
+
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'username'], // Selectează doar câmpurile necesare
+    });
+    res.send(users);
+  } catch (error) {
+    res.status(500).send('Server Error');
+  }
+};
 
 exports.register = async (req, res) => {
   const errors = validationResult(req);
@@ -46,11 +62,20 @@ exports.login = async (req, res) => {
   if (!validPass) return res.status(400).send('Invalid password');
 
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  console.log('Generated Token:', token); // Debugging
-  res.header('Authorization', `Bearer ${token}`).send({ token });
+  res.header('Authorization', `Bearer ${token}`).send({ token, user: { id: user.id, username: user.username, email: user.email } });
 };
 
-
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'username', 'email']
+    });
+    if (!user) return res.status(404).send('User not found');
+    res.send(user);
+  } catch (error) {
+    res.status(500).send('Server Error');
+  }
+};
 
 exports.profile = async (req, res) => {
   const user = await User.findByPk(req.user.id, {
