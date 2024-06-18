@@ -134,3 +134,39 @@ exports.updateProfile = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+exports.register = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { username, email, password } = req.body;
+  console.log('Received registration data:', { username, email, password });
+
+  try {
+    const emailExists = await User.findOne({ where: { email } });
+    if (emailExists) {
+      console.log('Email already exists:', email);
+      return res.status(400).send('Email already exists');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    console.log('Hashed password:', hashedPassword);
+
+    const user = new User({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    const savedUser = await user.save();
+    console.log('User saved:', savedUser);
+    res.send({ user: savedUser.id });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(400).send('Registration failed');
+  }
+};

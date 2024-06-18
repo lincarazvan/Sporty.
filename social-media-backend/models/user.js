@@ -2,6 +2,11 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   username: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -15,14 +20,20 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  roleId: {
+  roleId: { // Asigură-te că acest câmp este definit dacă este necesar
     type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: 2 // presupunem că 2 este rolul de utilizator normal
-  }
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
 });
-
-const Role = require('./role');
-User.belongsTo(Role, { foreignKey: 'roleId' });
 
 module.exports = User;

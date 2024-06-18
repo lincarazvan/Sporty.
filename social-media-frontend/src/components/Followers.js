@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
 import AuthContext from '../context/AuthContext';
@@ -6,26 +6,38 @@ import AuthContext from '../context/AuthContext';
 const socket = io('http://localhost:3000');
 
 const Followers = () => {
-  const { user } = useContext(AuthContext); // Obține utilizatorul autentificat din context
+  const { user, loading, error } = useContext(AuthContext);
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {
-    if (user) {
+    if (user && user.id) {
       const fetchFollowers = async () => {
-        const result = await axios.get(`/api/follow/followers/${user.id}`);
-        setFollowers(result.data);
+        try {
+          const result = await axios.get(`/api/follow/followers/${user.id}`);
+          setFollowers(result.data);
+        } catch (error) {
+          console.error('Error fetching followers:', error);
+        }
       };
 
       const fetchFollowing = async () => {
-        const result = await axios.get(`/api/follow/following/${user.id}`);
-        setFollowing(result.data);
+        try {
+          const result = await axios.get(`/api/follow/following/${user.id}`);
+          setFollowing(result.data);
+        } catch (error) {
+          console.error('Error fetching following:', error);
+        }
       };
 
       const fetchRequests = async () => {
-        const result = await axios.get('/api/follow/requests'); // presupunem că ai o rută pentru obținerea cererilor de prietenie
-        setRequests(result.data);
+        try {
+          const result = await axios.get('/api/follow/requests'); // presupunem că ai o rută pentru obținerea cererilor de prietenie
+          setRequests(result.data);
+        } catch (error) {
+          console.error('Error fetching follow requests:', error);
+        }
       };
 
       fetchFollowers();
@@ -48,14 +60,26 @@ const Followers = () => {
   }, [user]);
 
   const acceptRequest = async (followId) => {
-    await axios.put(`/api/follow/accept/${followId}`);
-    setRequests(requests.filter(request => request.id !== followId));
-    setFollowers([...followers, { id: followId }]);
-    socket.emit('acceptFollowRequest', { followId });
+    try {
+      await axios.put(`/api/follow/accept/${followId}`);
+      setRequests(requests.filter(request => request.id !== followId));
+      setFollowers([...followers, { id: followId }]);
+      socket.emit('acceptFollowRequest', { followId });
+    } catch (error) {
+      console.error('Error accepting follow request:', error);
+    }
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   if (!user) {
-    return <div>Please log in to see your followers.</div>;
+    return <div>Please log in to see your followers and following.</div>;
   }
 
   return (

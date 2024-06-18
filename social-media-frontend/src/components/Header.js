@@ -1,33 +1,23 @@
 import React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import { Link } from 'react-router-dom';
-import { getCurrentUser, logout } from '../services/authService';
 
 const Header = () => {
-  const user = getCurrentUser();
-
-  const handleLogout = () => {
-    logout();
-    window.location.reload();
-  };
-
   return (
-    <header>
-      <h1>Sporty</h1>
-      <nav>
-        <Link to="/">Home</Link>
-        {user ? (
-          <>
-            <span>Welcome, {user.username}</span>
-            <button onClick={handleLogout}>Logout</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
-      </nav>
-    </header>
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          Sports Social Media
+        </Typography>
+        <Link to="/" style={{ color: 'white', textDecoration: 'none', marginRight: 20 }}>Home</Link>
+        <Link to="/followers" style={{ color: 'white', textDecoration: 'none', marginRight: 20 }}>Followers</Link>
+        <Link to="/chat" style={{ color: 'white', textDecoration: 'none', marginRight: 20 }}>Chat</Link>
+        <Link to="/login" style={{ color: 'white', textDecoration: 'none', marginRight: 20 }}>Login</Link>
+        <Link to="/register" style={{ color: 'white', textDecoration: 'none', marginRight: 20 }}>Register</Link>
+      </Toolbar>
+    </AppBar>
   );
 };
 

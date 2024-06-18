@@ -23,12 +23,19 @@ const app = express();
 const server = http.createServer(app); // Creare server HTTP
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Adaptează la frontend-ul tău
+    origin: "http://localhost:3001", // Adaptează la frontend-ul tău
     methods: ["GET", "POST"],
   },
 });
 
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3001', // Adaptează la frontend-ul tău
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json());
 
 app.use('/api/users', userRoutes);
