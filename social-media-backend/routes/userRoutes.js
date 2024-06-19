@@ -9,13 +9,19 @@ router.post('/register', [
   check('username', 'Username is required').not().isEmpty(),
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Password is required').isLength({ min: 6 })
-], userController.register);
+], (req, res, next) => {
+  console.log('Register route hit'); // Debugging
+  next();
+}, userController.register);
 
 // Ruta pentru login
 router.post('/login', [
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Password is required').exists()
-], userController.login);
+], (req, res, next) => {
+  console.log('Login route hit'); // Debugging
+  next();
+}, userController.login);
 
 // Ruta pentru obținerea utilizatorului curent
 router.get('/me', authMiddleware, userController.getCurrentUser);

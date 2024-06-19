@@ -20,32 +20,42 @@ exports.getUsers = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
+  console.log('Received registration data:', req.body);
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { username, email, password } = req.body;
 
-  const emailExists = await User.findOne({ where: { email } });
-  if (emailExists) return res.status(400).send('Email already exists');
-
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  const user = new User({
-    username,
-    email,
-    password: hashedPassword,
-  });
-
   try {
+    const emailExists = await User.findOne({ where: { email } });
+    if (emailExists) {
+      console.log('Email already exists:', email);
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    console.log('Hashed password:', hashedPassword);
+
+    const user = new User({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
     const savedUser = await user.save();
-    res.send({ user: savedUser.id });
+    console.log('User saved:', savedUser);
+    return res.status(201).json({ user: savedUser.id });
   } catch (err) {
-    res.status(400).send(err);
+    console.error('Registration error:', err);
+    return res.status(500).json({ error: 'Registration failed' });
   }
 };
+
 
 exports.login = async (req, res) => {
   const errors = validationResult(req);
@@ -136,25 +146,26 @@ exports.updateProfile = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
+  console.log('Received registration data:', req.body); // Debugging
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log('Validation errors:', errors.array());
+    console.log('Validation errors:', errors.array()); // Debugging
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { username, email, password } = req.body;
-  console.log('Received registration data:', { username, email, password });
 
   try {
     const emailExists = await User.findOne({ where: { email } });
     if (emailExists) {
-      console.log('Email already exists:', email);
-      return res.status(400).send('Email already exists');
+      console.log('Email already exists:', email); // Debugging
+      return res.status(400).json({ error: 'Email already exists' });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    console.log('Hashed password:', hashedPassword);
+    console.log('Hashed password:', hashedPassword); // Debugging
 
     const user = new User({
       username,
@@ -163,10 +174,11 @@ exports.register = async (req, res) => {
     });
 
     const savedUser = await user.save();
-    console.log('User saved:', savedUser);
-    res.send({ user: savedUser.id });
+    console.log('User saved:', savedUser); // Debugging
+    return res.status(201).json({ user: savedUser.id });
   } catch (err) {
-    console.error('Registration error:', err);
-    res.status(400).send('Registration failed');
+    console.error('Registration error:', err); // Debugging
+    return res.status(500).json({ error: 'Registration failed' });
   }
 };
+

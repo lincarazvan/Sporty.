@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
+import AuthContext from '../context/AuthContext';
 
 const Register = () => {
+  const { login } = useContext(AuthContext); // Folosește login pentru a autentifica utilizatorul după înregistrare
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,8 +18,7 @@ const Register = () => {
 
     try {
       const response = await axios.post('http://localhost:3000/api/users/register', { username, email, password });
-      console.log('Response:', response.data); // Log răspunsul
-      alert('Registration successful!');
+      await login(email, password); // Autentifică utilizatorul după înregistrare
       setLoading(false);
     } catch (error) {
       setLoading(false);

@@ -1,24 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
-import Followers from './pages/Followers';
-import Chat from './pages/Chat';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
+import { AuthProvider } from './context/AuthContext'; // Import corect
 
 const App = () => {
   return (
-    <Router>
+    <AuthProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/followers" element={<Followers />} />
-        <Route path="/chat" element={<Chat />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
-    </Router>
+    </AuthProvider>
   );
 };
 

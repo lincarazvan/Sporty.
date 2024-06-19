@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
+import AuthContext from '../context/AuthContext';
 
 const Login = () => {
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,10 +15,8 @@ const Login = () => {
     setLoading(true);
     setError(''); // Reset error state
     try {
-      await axios.post('http://localhost:3000/api/users/login', { email, password });
-      alert('Login successful!');
+      await login(email, password);
       setLoading(false);
-      // Optionally, you can redirect or store token here
     } catch (error) {
       setLoading(false);
       if (error.response) {
