@@ -1,4 +1,5 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import { Container, Box, Typography, Button, TextField, Grid, List, ListItem, ListItemIcon, ListItemText, Avatar, IconButton } from '@mui/material';
 import { Home as HomeIcon, Search as SearchIcon, Notifications as NotificationsIcon, Mail as MailIcon, AccountCircle as AccountCircleIcon, ExitToApp as ExitToAppIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import AuthContext from '../context/AuthContext';
@@ -7,6 +8,41 @@ import { useNavigate } from 'react-router-dom';
 const Home = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [newPost, setNewPost] = useState('');
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:3000/api/posts', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setPosts(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch posts', error);
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('http://localhost:3000/api/posts', { content: newPost }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPosts([response.data, ...posts]);
+      setNewPost('');
+    } catch (error) {
+      console.error('Failed to post', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -16,6 +52,10 @@ const Home = () => {
   const handleEditProfile = () => {
     navigate('/profile');
   };
+
+  if (loading) {
+    return <Typography variant="h6">Loading...</Typography>;
+  }
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -61,8 +101,8 @@ const Home = () => {
             </ListItem>
           </List>
           {/* Profile Section */}
-          <Box position="absolute" bottom={0} p={2} width="100%">
-            <Grid container alignItems="center" spacing={1}>
+          <Box position="absolute" bottom={5} p={2} width="90%">
+            <Grid container alignItems="center" spacing={2}>
               <Grid item>
                 <Avatar alt={user?.username} src="/path/to/avatar.jpg" />
               </Grid>
@@ -80,20 +120,27 @@ const Home = () => {
         </Grid>
         {/* Main Content */}
         <Grid item xs={6} sx={{ borderRight: '1px solid #e0e0e0', paddingTop: 2 }}>
-          <Box component="form" noValidate autoComplete="off">
+          <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
             <TextField
               label="What's happening?"
               fullWidth
               variant="outlined"
               multiline
-              rows={3}
+              rows={2}
+              value={newPost}
+              onChange={(e) => setNewPost(e.target.value)}
               sx={{ mb: 2 }}
             />
-            <Button variant="contained" color="primary">Post</Button>
+            <Button type="submit" variant="contained" color="primary">Post</Button>
           </Box>
           <Box mt={4}>
             <Typography variant="h6">Posts</Typography>
-            {/* Render posts here */}
+            {posts.map((post) => (
+              <Box key={post.id} sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '8px' }}>
+                <Typography variant="body1">{post.content}</Typography>
+                <Typography variant="body2" color="textSecondary">Posted by {post.User ? post.User.username : 'Unknown'}</Typography>
+              </Box>
+            ))}
           </Box>
         </Grid>
         {/* Right Sidebar */}

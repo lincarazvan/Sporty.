@@ -4,9 +4,9 @@ const postController = require('../controllers/postController');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
-router.post('/', [
+router.post('/', 
   authMiddleware,
-  check('title', 'Title is required').not().isEmpty(),
+  [
   check('content', 'Content is required').not().isEmpty()
 ], postController.createPost);
 
@@ -17,7 +17,6 @@ router.delete('/:id', authMiddleware, postController.deletePost);
 
 router.put('/:id', [
     authMiddleware,
-    check('title', 'Title is required').not().isEmpty(),
     check('content', 'Content is required').not().isEmpty()
   ], postController.updatePost);
 

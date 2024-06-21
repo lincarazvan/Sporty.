@@ -20,7 +20,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  roleId: { // Asigură-te că acest câmp este definit dacă este necesar
+  roleId: {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
@@ -34,6 +34,12 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: DataTypes.NOW,
   },
+}, {
+  tableName: 'Users'
 });
+
+User.associate = function(models) {
+  User.hasMany(models.Post, { foreignKey: 'userId', onDelete: 'CASCADE' });
+};
 
 module.exports = User;

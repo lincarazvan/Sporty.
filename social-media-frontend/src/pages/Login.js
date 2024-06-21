@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import axios from 'axios';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
 import AuthContext from '../context/AuthContext';
 
@@ -16,22 +15,11 @@ const Login = () => {
     setError(''); // Reset error state
     try {
       await login(email, password);
-      setLoading(false);
+      alert('Login successful!');
     } catch (error) {
       setLoading(false);
-      if (error.response) {
-        // Server responded with a status other than 200 range
-        console.error('Login error:', error.response.data);
-        setError(error.response.data);
-      } else if (error.request) {
-        // Request was made but no response received
-        console.error('No response received:', error.request);
-        setError('No response received from server.');
-      } else {
-        // Something else caused the error
-        console.error('Error setting up request:', error.message);
-        setError('Login failed. Please try again.');
-      }
+      console.error('Login error:', error);
+      setError('Login failed. Please try again.');
     }
   };
 

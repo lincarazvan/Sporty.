@@ -4,7 +4,6 @@ const userController = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// Ruta pentru înregistrare
 router.post('/register', [
   check('username', 'Username is required').not().isEmpty(),
   check('email', 'Please include a valid email').isEmail(),
@@ -14,7 +13,6 @@ router.post('/register', [
   next();
 }, userController.register);
 
-// Ruta pentru login
 router.post('/login', [
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Password is required').exists()

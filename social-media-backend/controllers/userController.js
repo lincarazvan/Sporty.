@@ -60,30 +60,46 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Login validation errors:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { email, password } = req.body;
 
-  const user = await User.findOne({ where: { email } });
-  if (!user) return res.status(400).send('Email or password is wrong');
+  try {
+    console.log('Login attempt:', email); // Debugging
 
-  const validPass = await bcrypt.compare(password, user.password);
-  if (!validPass) return res.status(400).send('Invalid password');
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      console.log('User not found:', email); // Debugging
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  res.header('Authorization', `Bearer ${token}`).send({ token, user: { id: user.id, username: user.username, email: user.email } });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log('Password does not match for user:', email); // Debugging
+      return res.status(400).json({ error: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    console.log('Login successful for user:', user.username); // Debugging
+    res.json({ user: { id: user.id, username: user.username, email: user.email }, token });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
 };
 
 exports.getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'username', 'email']
-    });
-    if (!user) return res.status(404).send('User not found');
-    res.send(user);
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Get current user error:', error);
+    res.status(500).json({ error: 'Failed to fetch user' });
   }
 };
 
@@ -144,41 +160,3 @@ exports.updateProfile = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
-
-exports.register = async (req, res) => {
-  console.log('Received registration data:', req.body); // Debugging
-
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log('Validation errors:', errors.array()); // Debugging
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { username, email, password } = req.body;
-
-  try {
-    const emailExists = await User.findOne({ where: { email } });
-    if (emailExists) {
-      console.log('Email already exists:', email); // Debugging
-      return res.status(400).json({ error: 'Email already exists' });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    console.log('Hashed password:', hashedPassword); // Debugging
-
-    const user = new User({
-      username,
-      email,
-      password: hashedPassword,
-    });
-
-    const savedUser = await user.save();
-    console.log('User saved:', savedUser); // Debugging
-    return res.status(201).json({ user: savedUser.id });
-  } catch (err) {
-    console.error('Registration error:', err); // Debugging
-    return res.status(500).json({ error: 'Registration failed' });
-  }
-};
-
