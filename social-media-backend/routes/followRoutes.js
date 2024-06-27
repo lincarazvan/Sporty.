@@ -5,15 +5,15 @@ const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.post('/', [
-  authMiddleware,
+  authMiddleware.required,
   check('followingId', 'Following ID is required').isInt()
 ], followController.followUser);
 
-router.put('/accept/:followId', authMiddleware, followController.acceptFollowRequest);
+router.put('/accept/:followId', authMiddleware.required, followController.acceptFollowRequest);
 
-router.get('/followers/:userId', authMiddleware, followController.getFollowers);
-router.get('/following/:userId', authMiddleware, followController.getFollowing);
+router.get('/followers/:userId', authMiddleware.required, followController.getFollowers);
+router.get('/following/:userId', authMiddleware.required, followController.getFollowing);
 
-router.get('/friends', authMiddleware, followController.getFriends);
+router.get('/friends', authMiddleware.required, followController.getFriends);
 
 module.exports = router;

@@ -13,7 +13,7 @@ router.put('/reset/:token', [
 ], passwordController.resetPassword);
 
 router.put('/change', [
-  authMiddleware,
+  authMiddleware.required,
   check('currentPassword', 'Current password is required').exists(),
   check('newPassword', 'New password is required').isLength({ min: 6 })
 ], passwordController.changePassword);

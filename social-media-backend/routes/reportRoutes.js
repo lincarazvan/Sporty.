@@ -5,14 +5,14 @@ const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.post('/', [
-  authMiddleware,
+  authMiddleware.required,
   check('reason', 'Reason is required').not().isEmpty(),
 ], reportController.createReport);
 
-router.get('/', authMiddleware, reportController.getReports);
+router.get('/', authMiddleware.required, reportController.getReports);
 
 router.put('/:reportId', [
-  authMiddleware,
+  authMiddleware.required,
   check('status', 'Status is required').not().isEmpty(),
 ], reportController.updateReportStatus);
 

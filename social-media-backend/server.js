@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const { sequelize } = require('./models'); // Import sequelize from models
 const userRoutes = require('./routes/userRoutes');
 const postRoutes = require('./routes/postRoutes');
-const reactionRoutes = require('./routes/reactionRoutes');
+const likeRoutes = require('./routes/likeRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const followRoutes = require('./routes/followRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
@@ -40,7 +40,7 @@ app.use(bodyParser.json());
 
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
-app.use('/api/reactions', reactionRoutes);
+app.use('/api/likes', likeRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/follows', followRoutes);
 app.use('/api/notifications', notificationRoutes);

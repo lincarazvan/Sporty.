@@ -22,18 +22,18 @@ router.post('/login', [
 }, userController.login);
 
 // Ruta pentru obținerea utilizatorului curent
-router.get('/me', authMiddleware, userController.getCurrentUser);
+router.get('/me', authMiddleware.required, userController.getCurrentUser);
 
 // Ruta pentru obținerea tuturor utilizatorilor
-router.get('/', authMiddleware, userController.getUsers);
+router.get('/', authMiddleware.required, userController.getUsers);
 
 // Rute pentru gestionarea profilului utilizatorului
-router.get('/profile', authMiddleware, userController.profile);
+router.get('/profile', authMiddleware.required, userController.profile);
 router.put('/profile', [
-  authMiddleware,
+  authMiddleware.required,
   check('username', 'Username is required').not().isEmpty(),
   check('email', 'Please include a valid email').isEmail()
 ], userController.updateProfile);
-router.delete('/profile', authMiddleware, userController.deleteProfile);
+router.delete('/profile', authMiddleware.required, userController.deleteProfile);
 
 module.exports = router;

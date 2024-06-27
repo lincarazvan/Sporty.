@@ -4,9 +4,9 @@ const privacyController = require('../controllers/privacyController');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
-router.get('/', authMiddleware, privacyController.getPrivacySettings);
+router.get('/', authMiddleware.required, privacyController.getPrivacySettings);
 router.post('/', [
-  authMiddleware,
+  authMiddleware.required,
   check('visibility', 'Visibility is required').isIn(['public', 'friends', 'private'])
 ], privacyController.updatePrivacySettings);
 

@@ -1,83 +1,60 @@
-const { validationResult } = require('express-validator');
-const Comment = require('../models/comment');
-const Notification = require('../models/notification');
-const Post = require('../models/post'); 
+const { Comment, User } = require('../models');
 
 exports.createComment = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { content, postId } = req.body;
-  const userId = req.user.id;
   try {
-    const comment = await Comment.create({ content, postId, userId });
+    const { content, postId } = req.body;
+    const userId = req.user.id;
 
-    // Obține proprietarul postării pentru a trimite notificarea
-    const post = await Post.findByPk(postId);
-    if (post && post.userId !== userId) {
-      await Notification.create({
-        type: 'comment',
-        message: `New comment on your post: ${content}`,
-        userId: post.userId
-      });
-    }
+    const comment = await Comment.create({
+      content,
+      userId,
+      postId
+    });
 
-    res.status(201).send(comment);
+    const commentWithUser = await Comment.findByPk(comment.id, {
+      include: [{ model: User, attributes: ['id', 'username'] }]
+    });
+
+    res.status(201).json(commentWithUser);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error creating comment:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-exports.getCommentsForPost = async (req, res) => {
-  const postId = req.params.postId;
+exports.getComments = async (req, res) => {
   try {
-    const comments = await Comment.findAll({ where: { postId } });
-    res.send(comments);
+    const { postId } = req.params;
+    const comments = await Comment.findAll({
+      where: { postId },
+      include: [{ model: User, attributes: ['id', 'username'] }],
+      order: [['createdAt', 'DESC']]
+    });
+    res.status(200).json(comments);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error fetching comments:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 exports.deleteComment = async (req, res) => {
-    const commentId = req.params.id;
+  try {
+    const { id } = req.params;
     const userId = req.user.id;
-    try {
-      const comment = await Comment.findByPk(commentId);
-      if (!comment) return res.status(404).send('Comment not found');
-      
-      // Verifică dacă utilizatorul este proprietarul comentariului
-      if (comment.userId !== userId) return res.status(403).send('Unauthorized');
-  
-      await comment.destroy();
-      res.send('Comment deleted');
-    } catch (error) {
-      res.status(500).send('Server Error');
-    }
-  };
 
-  exports.updateComment = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const comment = await Comment.findByPk(id);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
     }
-  
-    const commentId = req.params.id;
-    const userId = req.user.id;
-    const { content } = req.body;
-  
-    try {
-      const comment = await Comment.findByPk(commentId);
-      if (!comment) return res.status(404).send('Comment not found');
-  
-      // Verifică dacă utilizatorul este proprietarul comentariului
-      if (comment.userId !== userId) return res.status(403).send('Unauthorized');
-  
-      comment.content = content;
-      await comment.save();
-      res.send('Comment updated');
-    } catch (error) {
-      res.status(500).send('Server Error');
+
+    if (comment.userId !== userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
     }
-  };
+
+    await comment.destroy();
+    res.status(200).json({ message: 'Comment deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

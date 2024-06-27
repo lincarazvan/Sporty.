@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-
-module.exports = async function(req, res, next) {
+exports.required = async function(req, res, next) {
   const authHeader = req.header('Authorization');
   if (!authHeader) return res.status(401).send('Access Denied');
 
@@ -19,4 +18,18 @@ module.exports = async function(req, res, next) {
   } catch (error) {
     res.status(400).send('Invalid Token');
   }
+};
+
+exports.optional = async (req, res, next) => {
+  const authHeader = req.header('Authorization');
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const verified = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findByPk(verified.id);
+    } catch (error) {
+      // Ignoră erorile de token invalid
+    }
+  }
+  next();
 };
