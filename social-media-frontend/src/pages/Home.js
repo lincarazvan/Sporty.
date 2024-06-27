@@ -1,14 +1,15 @@
 import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Box, Typography, Button, TextField, Grid, List, ListItem, ListItemIcon, ListItemText, Avatar, IconButton } from '@mui/material';
+import { Container, Box, Typography, Grid, List, ListItem, ListItemIcon, ListItemText, Avatar, IconButton } from '@mui/material';
 import { Home as HomeIcon, Search as SearchIcon, Notifications as NotificationsIcon, Mail as MailIcon, AccountCircle as AccountCircleIcon, ExitToApp as ExitToAppIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import AuthContext from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import CreatePost from '../components/CreatePost';
+import Post from '../components/Post';
 
 const Home = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [newPost, setNewPost] = useState('');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,18 +31,8 @@ const Home = () => {
     fetchPosts();
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3000/api/posts', { content: newPost }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPosts([response.data, ...posts]);
-      setNewPost('');
-    } catch (error) {
-      console.error('Failed to post', error);
-    }
+  const handleNewPost = (newPost) => {
+    setPosts([newPost, ...posts]);
   };
 
   const handleLogout = () => {
@@ -120,26 +111,11 @@ const Home = () => {
         </Grid>
         {/* Main Content */}
         <Grid item xs={6} sx={{ borderRight: '1px solid #e0e0e0', paddingTop: 2 }}>
-          <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
-            <TextField
-              label="What's happening?"
-              fullWidth
-              variant="outlined"
-              multiline
-              rows={2}
-              value={newPost}
-              onChange={(e) => setNewPost(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <Button type="submit" variant="contained" color="primary">Post</Button>
-          </Box>
+          <CreatePost onPostCreated={handleNewPost} />
           <Box mt={4}>
             <Typography variant="h6">Posts</Typography>
             {posts.map((post) => (
-              <Box key={post.id} sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: '8px' }}>
-                <Typography variant="body1">{post.content}</Typography>
-                <Typography variant="body2" color="textSecondary">Posted by {post.User ? post.User.username : 'Unknown'}</Typography>
-              </Box>
+              <Post key={post.id} post={post} />
             ))}
           </Box>
         </Grid>

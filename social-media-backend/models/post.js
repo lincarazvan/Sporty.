@@ -14,6 +14,10 @@ const Post = sequelize.define('Post', {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  imagePath: {
+    type: DataTypes.STRING,
+    allowNull: true,
   }
 }, {
   tableName: 'Posts'

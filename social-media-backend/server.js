@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const http = require('http');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -48,6 +49,7 @@ app.use('/api/privacy', privacyRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/password', passwordRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Nu folosim force: true în sincronizare
 sequelize.sync().then(() => {

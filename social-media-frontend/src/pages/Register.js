@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import axios from 'axios';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
 import AuthContext from '../context/AuthContext';
 
@@ -17,7 +16,6 @@ const Register = () => {
     setError(''); // Reset error state
 
     try {
-      const response = await axios.post('http://localhost:3000/api/users/register', { username, email, password });
       await login(email, password); // Autentifică utilizatorul după înregistrare
       setLoading(false);
     } catch (error) {
