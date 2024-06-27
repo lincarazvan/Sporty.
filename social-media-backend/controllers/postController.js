@@ -61,6 +61,19 @@ exports.getPostById = async (req, res) => {
   }
 };
 
+exports.getUserPosts = async (req, res) => {
+  try {
+    const posts = await Post.findAll({
+      where: { userId: req.params.userId },
+      include: [{ model: User, attributes: ['username'] }],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 exports.deletePost = async (req, res) => {
     const postId = req.params.id;
     const userId = req.user.id;

@@ -36,4 +36,6 @@ router.put('/profile', [
 ], userController.updateProfile);
 router.delete('/profile', authMiddleware.required, userController.deleteProfile);
 
+router.get('/profile/:username', userController.getUserProfile);
+
 module.exports = router;

@@ -19,6 +19,36 @@ exports.getUsers = async (req, res) => {
   }
 };
 
+exports.getUserProfile = async (req, res) => {
+  try {
+    console.log('Fetching profile for username:', req.params.username);
+    const user = await User.findOne({ 
+      where: { username: req.params.username },
+      attributes: ['id', 'username', 'email']
+    });
+    
+    if (!user) {
+      console.log('User not found');
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Adăugați bio și avatarUrl doar dacă există
+    const userProfile = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      bio: user.bio || null,
+      //avatarUrl: user.avatarUrl || null
+    };
+    
+    console.log('User found:', userProfile);
+    res.json(userProfile);
+  } catch (error) {
+    console.error('Error in getUserProfile:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 exports.register = async (req, res) => {
   console.log('Received registration data:', req.body);
 
@@ -140,23 +170,11 @@ exports.deleteProfile = async (req, res) => {
 };
 
 exports.updateProfile = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const userId = req.user.id;
-  const { username, email } = req.body;
-
   try {
-    const user = await User.findByPk(userId);
-    if (!user) return res.status(404).send('User not found');
-
-    user.username = username;
-    user.email = email;
-    await user.save();
-    res.send('Profile updated');
+    const { username, bio } = req.body;
+    await req.user.update({ username, bio });
+    res.json(req.user);
   } catch (error) {
-    res.status(500).send('Server Error');
+    res.status(500).json({ message: 'Server error' });
   }
 };

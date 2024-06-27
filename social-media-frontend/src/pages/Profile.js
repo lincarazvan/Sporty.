@@ -1,54 +1,57 @@
-import React, { useState, useContext } from 'react';
-import { Container, Box, Typography, Button, TextField } from '@mui/material';
-import AuthContext from '../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Container, Typography, Avatar, Button, Grid } from '@mui/material';
+import axios from 'axios';
+import Post from '../components/Post';
 
 const Profile = () => {
-  const { user } = useContext(AuthContext);
-  const [username, setUsername] = useState(user.username);
-  const [email, setEmail] = useState(user.email);
-  const [password, setPassword] = useState('');
-  const [response, setResponse] = useState('');
+  const { username } = useParams();
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
 
-  const handleUpdate = async () => {
-    try {
-      // API call to update profile
-      setResponse('Profile updated successfully.');
-    } catch (error) {
-      setResponse('Error updating profile.');
-    }
-  };
+  useEffect(() => {
+    const fetchUserAndPosts = async () => {
+      try {
+        const userResponse = await axios.get(`http://localhost:3000/api/users/profile/${username}`);
+        setUser(userResponse.data);
+
+        const postsResponse = await axios.get(`http://localhost:3000/api/posts/user/${userResponse.data.id}`);
+        setPosts(postsResponse.data);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserAndPosts();
+  }, [username]);
+
+  if (!user) {
+    return <Typography>Loading...</Typography>;
+  }
 
   return (
     <Container>
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="h4">Edit Profile</Typography>
-        <TextField
-          label="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          fullWidth
-          margin="normal"
-          type="password"
-        />
-        <Button onClick={handleUpdate} variant="contained" color="primary" sx={{ mt: 2 }}>
-          Update Profile
-        </Button>
-        {response && <Typography sx={{ mt: 2 }}>{response}</Typography>}
-      </Box>
+      <Grid container spacing={3} alignItems="center" sx={{ mb: 4 }}>
+        <Grid item>
+          <Avatar
+            alt={user.username}
+            src={user.avatarUrl}
+            sx={{ width: 100, height: 100 }}
+          />
+        </Grid>
+        <Grid item>
+          <Typography variant="h4">{user.username}</Typography>
+          <Typography variant="body1">{user.bio}</Typography>
+          <Button variant="outlined" component={Link} to="/edit-profile">
+            Edit Profile
+          </Button>
+        </Grid>
+      </Grid>
+
+      <Typography variant="h5" sx={{ mb: 2 }}>Posts</Typography>
+      {posts.map(post => (
+        <Post key={post.id} post={post} />
+      ))}
     </Container>
   );
 };

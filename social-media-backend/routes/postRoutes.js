@@ -19,4 +19,6 @@ router.put('/:id', [
   check('content', 'Content is required').not().isEmpty()
 ], postController.updatePost);
 
+router.get('/user/:userId', authMiddleware.required, postController.getUserPosts);
+
 module.exports = router;

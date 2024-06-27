@@ -97,7 +97,7 @@ const Post = ({ post }) => {
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar sx={{ mr: 2 }}>{post.User?.username?.[0] || '?'}</Avatar>
-          <Typography variant="h6">{post.User?.username || 'Unknown User'}</Typography>
+          <Typography variant="h6" component={RouterLink} to={`/profile/${post.User.username}`}>{post.User?.username || 'Unknown User'}</Typography>
         </Box>
         <Typography variant="body1" gutterBottom>
           {renderContent(post.content)}
@@ -140,11 +140,18 @@ const Post = ({ post }) => {
             Post Comment
           </Button>
           {comments.map((comment) => (
-            <Box key={comment.id} sx={{ mt: 2 }}>
-              <Typography variant="subtitle2">{comment.User.username}</Typography>
-              <Typography variant="body2">{comment.content}</Typography>
-            </Box>
-          ))}
+  <Box key={comment.id} sx={{ mt: 2 }}>
+    <Typography 
+      variant="subtitle2" 
+      component={RouterLink} 
+      to={`/profile/${comment.User.username}`}
+      sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline' } }}
+    >
+      {comment.User.username}
+    </Typography>
+    <Typography variant="body2">{comment.content}</Typography>
+  </Box>
+))}
         </Box>
         )}
 
