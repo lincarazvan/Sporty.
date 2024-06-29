@@ -1,46 +1,55 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const response = await axios.get('http://localhost:3000/api/users/me', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setUser(response.data);
-        }
-      } catch (error) {
-        setUser(null);
-        setError('Failed to authenticate');
-      } finally {
-        setLoading(false);
+  const checkAuth = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const response = await axios.get('http://localhost:3000/api/users/me');
+        setUser(response.data);
+        localStorage.setItem('user', JSON.stringify(response.data));
       }
-    };
-    checkAuth();
+    } catch (error) {
+      console.error('Authentication check failed:', error);
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const login = async (email, password) => {
     try {
       setLoading(true);
       const response = await axios.post('http://localhost:3000/api/users/login', { email, password });
       setUser(response.data.user);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       localStorage.setItem('token', response.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       navigate('/home');
     } catch (error) {
-      setError('Login failed');
-      throw new Error('Login failed');
+      console.error('Login failed:', error);
+      setError('Login failed. Please check your credentials.');
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -48,13 +57,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('user');
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     navigate('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser ,login, logout, loading, error }}>
+    <AuthContext.Provider value={{ user, setUser, login, logout, loading, error, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

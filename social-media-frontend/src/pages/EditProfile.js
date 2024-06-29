@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, TextField, Button, Typography, Box, Avatar } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Avatar, Paper, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +12,7 @@ const EditProfile = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [avatar, setAvatar] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(user ? user.avatarUrl : '');
+  const [avatarPreview, setAvatarPreview] = useState(user ? `http://localhost:3000${user.avatarUrl}` : '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const EditProfile = () => {
     if (user) {
       setUsername(user.username);
       setBio(user.bio || '');
-      setAvatarPreview(user.avatarUrl);
+      setAvatarPreview(user.avatarUrl ? `http://localhost:3000${user.avatarUrl}` : '');
     }
   }, [user]);
 
@@ -49,11 +50,9 @@ const EditProfile = () => {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
-      if (setUser) {
-        setUser(response.data);
-      } else {
-        console.warn('setUser function is not available');
-      }
+      setUser(response.data);
+      localStorage.setItem('user', JSON.stringify(response.data));
+      
       navigate(`/profile/${response.data.username}`);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -65,63 +64,72 @@ const EditProfile = () => {
   };
 
   return (
-    <Container>
-      <Typography variant="h4" sx={{ mb: 4 }}>Edit Profile</Typography>
-      <Box component="form" onSubmit={handleSubmit}>
-        <Avatar
-          src={avatarPreview}
-          alt={username}
-          sx={{ width: 100, height: 100, mb: 2 }}
-        />
-        <input
-          accept="image/*"
-          type="file"
-          id="avatar-upload"
-          style={{ display: 'none' }}
-          onChange={handleAvatarChange}
-        />
-        <label htmlFor="avatar-upload">
-          <Button variant="contained" component="span">
-            Upload Avatar
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>Edit Profile</Typography>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Avatar
+            src={avatarPreview}
+            alt={username}
+            sx={{ width: 100, height: 100, mb: 2 }}
+          />
+          <input
+            accept="image/*"
+            type="file"
+            id="avatar-upload"
+            style={{ display: 'none' }}
+            onChange={handleAvatarChange}
+          />
+          <label htmlFor="avatar-upload">
+            <Button variant="contained" component="span" sx={{ mb: 2 }}>
+              Change Avatar
+            </Button>
+          </label>
+          <TextField
+            fullWidth
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Bio"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            margin="normal"
+            multiline
+            rows={4}
+          />
+          <Accordion sx={{ width: '100%', mt: 2 }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography>Update Password</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField
+                fullWidth
+                label="Current Password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="New Password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                margin="normal"
+              />
+            </AccordionDetails>
+          </Accordion>
+          {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
+          <Button type="submit" variant="contained" color="primary" sx={{ mt: 3 }} disabled={loading}>
+            {loading ? 'Updating...' : 'Save Changes'}
           </Button>
-        </label>
-        <TextField
-          fullWidth
-          label="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="Bio"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          margin="normal"
-          multiline
-          rows={4}
-        />
-        <TextField
-          fullWidth
-          label="Current Password"
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          margin="normal"
-        />
-        <TextField
-          fullWidth
-          label="New Password"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          margin="normal"
-        />
-        {error && <Typography color="error">{error}</Typography>}
-        <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }} disabled={loading}>
-          {loading ? 'Updating...' : 'Save Changes'}
-        </Button>
-      </Box>
+        </Box>
+      </Paper>
     </Container>
   );
 };

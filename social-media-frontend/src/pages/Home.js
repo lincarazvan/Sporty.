@@ -11,6 +11,8 @@ import {
   ListItemText,
   Avatar,
   IconButton,
+  Paper,
+  Divider,
 } from "@mui/material";
 import {
   Home as HomeIcon,
@@ -20,9 +22,10 @@ import {
   AccountCircle as AccountCircleIcon,
   ExitToApp as ExitToAppIcon,
   MoreVert as MoreVertIcon,
+  TrendingUp as TrendingUpIcon,
 } from "@mui/icons-material";
 import AuthContext from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import CreatePost from "../components/CreatePost";
 import Post from "../components/Post";
 
@@ -59,10 +62,6 @@ const Home = () => {
     navigate("/");
   };
 
-  const handleEditProfile = () => {
-    navigate("/profile");
-  };
-
   const handleViewProfile = () => {
     navigate(`/profile/${user.username}`);
   };
@@ -72,95 +71,86 @@ const Home = () => {
   }
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Grid container spacing={2}>
-        {/* Sidebar */}
-        <Grid
-          item
-          xs={3}
-          sx={{
-            borderRight: "1px solid #e0e0e0",
-            pr: 2,
-            position: "relative",
-            height: "100vh",
-          }}
-        >
-          <List>
-            <ListItem button>
-              <ListItemIcon>
-                <HomeIcon />
-              </ListItemIcon>
-              <ListItemText primary="Home" />
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon>
-                <SearchIcon />
-              </ListItemIcon>
-              <ListItemText primary="Explore" />
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon>
-                <NotificationsIcon />
-              </ListItemIcon>
-              <ListItemText primary="Notifications" />
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon>
-                <MailIcon />
-              </ListItemIcon>
-              <ListItemText primary="Messages" />
-            </ListItem>
-            <ListItem button onClick={handleViewProfile}>
-              <ListItemIcon>
-                <AccountCircleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </ListItem>
-            <ListItem button onClick={handleLogout}>
-              <ListItemIcon>
-                <ExitToAppIcon />
-              </ListItemIcon>
-              <ListItemText primary="Log out" />
-            </ListItem>
-          </List>
-          {/* Profile Section */}
-          <Box position="absolute" bottom={5} p={2} width="90%">
-            <Grid container alignItems="center" spacing={2}>
-              <Grid item>
-                <Avatar alt={user?.username} src="/path/to/avatar.jpg" />
+    <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Grid container spacing={3}>
+        {/* Left Sidebar */}
+        <Grid item xs={12} md={3}>
+          <Paper elevation={3} sx={{ p: 2, position: 'sticky', top: 20 }}>
+            <List>
+              <ListItem button component={Link} to="/home">
+                <ListItemIcon><HomeIcon color="primary" /></ListItemIcon>
+                <ListItemText primary="Home" primaryTypographyProps={{ fontWeight: 'bold' }} />
+              </ListItem>
+              <ListItem button>
+                <ListItemIcon><SearchIcon /></ListItemIcon>
+                <ListItemText primary="Explore" />
+              </ListItem>
+              <ListItem button>
+                <ListItemIcon><NotificationsIcon /></ListItemIcon>
+                <ListItemText primary="Notifications" />
+              </ListItem>
+              <ListItem button>
+                <ListItemIcon><MailIcon /></ListItemIcon>
+                <ListItemText primary="Messages" />
+              </ListItem>
+              <ListItem button onClick={handleViewProfile}>
+                <ListItemIcon><AccountCircleIcon /></ListItemIcon>
+                <ListItemText primary="Profile" />
+              </ListItem>
+              <ListItem button onClick={handleLogout}>
+                <ListItemIcon><ExitToAppIcon /></ListItemIcon>
+                <ListItemText primary="Log out" />
+              </ListItem>
+            </List>
+            <Divider sx={{ my: 2 }} />
+            <Box>
+              <Grid container alignItems="center" spacing={2}>
+                <Grid item>
+                  <Avatar alt={user?.username} src={user?.avatarUrl ? `http://localhost:3000${user.avatarUrl}` : '/default-avatar.png'} />
+                </Grid>
+                <Grid item xs>
+                  <Typography variant="body1" fontWeight="bold">{user?.username}</Typography>
+                  <Typography variant="body2" color="textSecondary">@{user?.username}</Typography>
+                </Grid>
+                <Grid item>
+                  <IconButton onClick={handleViewProfile}>
+                    <MoreVertIcon />
+                  </IconButton>
+                </Grid>
               </Grid>
-              <Grid item xs>
-                <Typography variant="body1">{user?.username}</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  @{user?.username}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <IconButton onClick={handleEditProfile}>
-                  <MoreVertIcon />
-                </IconButton>
-              </Grid>
-            </Grid>
-          </Box>
+            </Box>
+          </Paper>
         </Grid>
+
         {/* Main Content */}
-        <Grid
-          item
-          xs={6}
-          sx={{ borderRight: "1px solid #e0e0e0", paddingTop: 2 }}
-        >
-          <CreatePost onPostCreated={handleNewPost} />
-          <Box mt={4}>
-            <Typography variant="h6">Posts</Typography>
-            {posts.map((post) => (
-              <Post key={post.id} post={post} />
-            ))}
-          </Box>
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
+            <CreatePost onPostCreated={handleNewPost} />
+          </Paper>
+          <Typography variant="h6" gutterBottom>Latest Posts</Typography>
+          {posts.map((post) => (
+            <Post key={post.id} post={post} />
+          ))}
         </Grid>
+
         {/* Right Sidebar */}
-        <Grid item xs={3}>
-          <Typography variant="h6">Trends for you</Typography>
-          {/* Render trends here */}
+        <Grid item xs={12} md={3}>
+          <Paper elevation={3} sx={{ p: 2, position: 'sticky', top: 20 }}>
+            <Typography variant="h6" gutterBottom>Trends for you</Typography>
+            <List>
+              {[1, 2, 3, 4, 5].map((item) => (
+                <ListItem key={item} button>
+                  <ListItemIcon>
+                    <TrendingUpIcon />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={`Trending Topic ${item}`}
+                    secondary={`${Math.floor(Math.random() * 10000)} posts`}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
         </Grid>
       </Grid>
     </Container>

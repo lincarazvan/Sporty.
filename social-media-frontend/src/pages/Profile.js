@@ -1,93 +1,64 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Container, Typography, Avatar, Button, Grid, CircularProgress } from '@mui/material';
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams } from 'react-router-dom';
+import { Typography, Avatar, Button, Box, Paper } from '@mui/material';
 import axios from 'axios';
+import AuthContext from '../context/AuthContext';
 import Post from '../components/Post';
+import Layout from '../components/Layout';
 
 const Profile = () => {
   const { username } = useParams();
-  const [user, setUser] = useState(null);
+  const { user } = useContext(AuthContext);
+  const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserAndPosts = async () => {
-      setLoading(true);
-      setError(null);
+    const fetchProfileAndPosts = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
+        const profileRes = await axios.get(`http://localhost:3000/api/users/profile/${username}`);
+        setProfile(profileRes.data);
 
-        const config = {
-          headers: { Authorization: `Bearer ${token}` }
-        };
-
-        const userResponse = await axios.get(`http://localhost:3000/api/users/profile/${username}`, config);
-        setUser(userResponse.data);
-
-        const postsResponse = await axios.get(`http://localhost:3000/api/posts/user/${userResponse.data.id}`, config);
-        setPosts(postsResponse.data);
+        const postsRes = await axios.get(`http://localhost:3000/api/posts/user/${profileRes.data.id}`);
+        setPosts(postsRes.data);
       } catch (error) {
-        console.error('Error fetching user profile:', error);
-        if (error.response && error.response.status === 401) {
-          setError('Session expired. Please login again.');
-          // Redirect to login page
-          navigate('/login');
-        } else {
-          setError('Failed to load profile. Please try again later.');
-        }
-      } finally {
-        setLoading(false);
+        console.error('Error fetching profile data:', error);
       }
     };
 
-    fetchUserAndPosts();
-  }, [username, navigate]);
+    fetchProfileAndPosts();
+  }, [username]);
 
-  if (loading) {
-    return <Container><CircularProgress /></Container>;
-  }
-
-  if (error) {
-    return <Container><Typography color="error">{error}</Typography></Container>;
-  }
-
-  if (!user) {
-    return <Container><Typography>User not found</Typography></Container>;
+  if (!profile) {
+    return <Typography>Loading...</Typography>;
   }
 
   return (
-    <Container>
-      <Grid container spacing={3} alignItems="center" sx={{ mb: 4 }}>
-        <Grid item>
-        <Avatar
-  alt={user.username}
-  src={user.avatarUrl || '/default-avatar.png'} // Folosiți o imagine implicită dacă nu există avatarUrl
-  sx={{ width: 100, height: 100 }}
-/>
-        </Grid>
-        <Grid item>
-          <Typography variant="h4">{user.username}</Typography>
-          <Typography variant="body1">{user.bio}</Typography>
-          <Button variant="outlined" component={Link} to="/edit-profile">
+    <Layout>
+      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+        <Box display="flex" alignItems="center" mb={2}>
+          <Avatar
+            src={profile.avatarUrl ? `http://localhost:3000${profile.avatarUrl}` : '/default-avatar.png'}
+            alt={profile.username}
+            sx={{ width: 100, height: 100, mr: 2 }}
+          />
+          <Box>
+            <Typography variant="h5">{profile.username}</Typography>
+            <Typography variant="body1" color="textSecondary">@{profile.username}</Typography>
+          </Box>
+        </Box>
+        <Typography variant="body1" paragraph>{profile.bio || 'No bio available'}</Typography>
+        {user && user.username === profile.username && (
+          <Button variant="outlined" color="primary" href="/edit-profile">
             Edit Profile
           </Button>
-        </Grid>
-      </Grid>
+        )}
+      </Paper>
 
-      <Typography variant="h5" sx={{ mb: 2 }}>Posts</Typography>
-      {posts.length > 0 ? (
-        posts.map(post => (
-          <Post key={post.id} post={post} />
-        ))
-      ) : (
-        <Typography>No posts yet</Typography>
-      )}
-    </Container>
+      <Typography variant="h6" gutterBottom>Posts</Typography>
+      {posts.map(post => (
+        <Post key={post.id} post={post} />
+      ))}
+    </Layout>
   );
 };
 

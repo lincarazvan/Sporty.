@@ -25,7 +25,7 @@ exports.getUserProfile = async (req, res) => {
     console.log('Fetching profile for username:', req.params.username);
     const user = await User.findOne({ 
       where: { username: req.params.username },
-      attributes: ['id', 'username', 'email']
+      attributes: ['id', 'username', 'email', 'bio', 'avatarUrl']
     });
     
     if (!user) {
@@ -33,14 +33,7 @@ exports.getUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Adăugați bio și avatarUrl doar dacă există
-    const userProfile = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      bio: user.bio || null,
-      //avatarUrl: user.avatarUrl || null
-    };
+    const userProfile = user.toJSON();
     
     console.log('User found:', userProfile);
     res.json(userProfile);
@@ -180,12 +173,10 @@ exports.updateProfile = [
       const { username, bio, currentPassword, newPassword } = req.body;
       const updateData = { username, bio };
 
-      // Verifică dacă a fost încărcat un avatar nou
       if (req.file) {
         updateData.avatarUrl = `/uploads/avatars/${req.file.filename}`;
       }
 
-      // Verifică dacă utilizatorul vrea să-și schimbe parola
       if (currentPassword && newPassword) {
         const user = await User.findByPk(req.user.id);
         const isMatch = await bcrypt.compare(currentPassword, user.password);
@@ -198,22 +189,21 @@ exports.updateProfile = [
 
       console.log('Update data:', updateData);
 
-      const [updatedRows] = await User.update(updateData, {
+      const [updatedRows, [updatedUser]] = await User.update(updateData, {
         where: { id: req.user.id },
         returning: true,
         individualHooks: true
       });
-      console.log('Updated rows:', updatedRows);
 
       if (updatedRows === 0) {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      const updatedUser = await User.findByPk(req.user.id, {
-        attributes: ['id', 'username', 'email', 'bio', 'avatarUrl']
-      });
+      const userResponse = updatedUser.toJSON();
+      delete userResponse.password;
 
-      res.json(updatedUser);
+      console.log('Updated user:', userResponse);
+      res.json(userResponse);
     } catch (error) {
       console.error('Error updating profile:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
