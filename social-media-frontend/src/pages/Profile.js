@@ -6,6 +6,7 @@ import {
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import Post from '../components/Post';
+import FollowButton from '../components/FollowButton';
 
 const Profile = () => {
   const { username } = useParams();
@@ -43,6 +44,7 @@ const Profile = () => {
           <Box>
             <Typography variant="h5">{profile.username}</Typography>
             <Typography variant="body1" color="textSecondary">@{profile.username}</Typography>
+            {user && user.id !== profile.id && <FollowButton userId={profile.id} />}
           </Box>
         </Box>
         <Typography variant="body1" paragraph>{profile.bio || 'No bio available'}</Typography>

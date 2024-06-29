@@ -1,62 +1,90 @@
-const { validationResult } = require('express-validator');
-const Follow = require('../models/follow');
+const { Follow, User } = require('../models');
 
 exports.followUser = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { followingId } = req.body;
   try {
-    const follow = await Follow.create({ followerId: req.user.id, followingId });
-    res.status(201).send(follow);
+    const { followingId } = req.body;
+    const followerId = req.user.id;
+
+    if (followerId === followingId) {
+      return res.status(400).json({ message: "You can't follow yourself" });
+    }
+
+    const [follow, created] = await Follow.findOrCreate({
+      where: { followerId, followingId },
+      defaults: { followerId, followingId }
+    });
+
+    if (!created) {
+      return res.status(400).json({ message: "You're already following this user" });
+    }
+
+    res.status(201).json(follow);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error in followUser:', error);
+    res.status(500).json({ message: 'Error following user', error: error.message });
   }
 };
 
-exports.acceptFollowRequest = async (req, res) => {
-  const { followId } = req.params;
+exports.unfollowUser = async (req, res) => {
   try {
-    const follow = await Follow.findOne({ where: { id: followId, followingId: req.user.id, status: 'pending' } });
-    if (follow) {
-      follow.status = 'accepted';
-      await follow.save();
-      res.send(follow);
-    } else {
-      res.status(404).send('Follow request not found');
+    const { followingId } = req.params;
+    const followerId = req.user.id;
+
+    const follow = await Follow.findOne({
+      where: { followerId, followingId }
+    });
+
+    if (!follow) {
+      return res.status(400).json({ message: "You're not following this user" });
     }
+
+    await follow.destroy();
+    res.status(200).json({ message: 'Successfully unfollowed user' });
   } catch (error) {
-    res.status(500).send('Server Error');
+    res.status(500).json({ message: 'Error unfollowing user', error: error.message });
   }
 };
 
 exports.getFollowers = async (req, res) => {
-  const { userId } = req.params;
   try {
-    const followers = await Follow.findAll({ where: { followingId: userId, status: 'accepted' } });
-    res.send(followers);
+    const userId = req.params.userId || req.user.id;
+    const followers = await Follow.findAll({
+      where: { followingId: userId },
+      include: [{ model: User, as: 'follower', attributes: ['id', 'username', 'avatarUrl'] }]
+    });
+    res.status(200).json(followers.map(f => f.follower));
   } catch (error) {
-    res.status(500).send('Server Error');
+    res.status(500).json({ message: 'Error getting followers', error: error.message });
   }
 };
 
 exports.getFollowing = async (req, res) => {
-  const { userId } = req.params;
   try {
-    const following = await Follow.findAll({ where: { followerId: userId, status: 'accepted' } });
-    res.send(following);
-  } catch (error) {
-    res.status(500).send('Server Error');
-  }
-};
+    const userId = req.params.userId || req.user.id;
+    const user = await User.findByPk(userId, {
+      include: [
+        {
+          model: Follow,
+          as: 'Following',
+          include: [
+            {
+              model: User,
+              as: 'following',
+              attributes: ['id', 'username', 'avatarUrl']
+            }
+          ]
+        }
+      ]
+    });
 
-exports.getFriends = async (req, res) => {
-  try {
-    const friends = await Follow.findAll({ where: { followerId: req.user.id, status: 'accepted' } });
-    res.send(friends);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const following = user.Following.map(follow => follow.following);
+    res.status(200).json(following);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error in getFollowing:', error);
+    res.status(500).json({ message: 'Error getting following', error: error.message });
   }
 };

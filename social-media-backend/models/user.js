@@ -50,6 +50,8 @@ const User = sequelize.define('User', {
 User.associate = function(models) {
   User.hasMany(models.Post, { foreignKey: 'userId', onDelete: 'CASCADE' });
   User.hasMany(models.Like, { foreignKey: 'userId' });
+  User.hasMany(models.Follow, { as: 'Followers', foreignKey: 'followingId' });
+  User.hasMany(models.Follow, { as: 'Following', foreignKey: 'followerId' });
 };
 
 module.exports = User;

@@ -10,11 +10,11 @@ const Follow = sequelize.define('Follow', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  status: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: 'pending',
-  },
 });
+
+Follow.associate = function(models) {
+  Follow.belongsTo(models.User, { as: 'follower', foreignKey: 'followerId' });
+  Follow.belongsTo(models.User, { as: 'following', foreignKey: 'followingId' });
+};
 
 module.exports = Follow;
