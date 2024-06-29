@@ -65,21 +65,25 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     console.log('Hashed password:', hashedPassword);
 
-    const user = new User({
+    const user = await User.create({
       username,
       email,
       password: hashedPassword,
     });
 
-    const savedUser = await user.save();
-    console.log('User saved:', savedUser);
-    return res.status(201).json({ user: savedUser.id });
+    console.log('User saved:', user);
+    
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    
+    return res.status(201).json({ 
+      user: { id: user.id, username: user.username, email: user.email },
+      token 
+    });
   } catch (err) {
     console.error('Registration error:', err);
     return res.status(500).json({ error: 'Registration failed' });
   }
 };
-
 
 exports.login = async (req, res) => {
   const errors = validationResult(req);
@@ -91,23 +95,26 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    console.log('Login attempt:', email); // Debugging
+    console.log('Login attempt:', email);
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      console.log('User not found:', email); // Debugging
+      console.log('User not found:', email);
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log('Password does not match for user:', email); // Debugging
+      console.log('Password does not match for user:', email);
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    console.log('Login successful for user:', user.username); // Debugging
-    res.json({ user: { id: user.id, username: user.username, email: user.email }, token });
+    console.log('Login successful for user:', user.username);
+    res.json({ 
+      user: { id: user.id, username: user.username, email: user.email }, 
+      token 
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });

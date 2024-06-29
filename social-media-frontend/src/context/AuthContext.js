@@ -47,8 +47,8 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       navigate('/home');
     } catch (error) {
-      console.error('Login failed:', error);
-      setError('Login failed. Please check your credentials.');
+      console.error('Login failed:', error.response ? error.response.data : error.message);
+      setError(error.response ? error.response.data.error : 'An unexpected error occurred');
       throw error;
     } finally {
       setLoading(false);
