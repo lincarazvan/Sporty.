@@ -29,13 +29,9 @@ router.get('/', authMiddleware.required, userController.getUsers);
 
 // Rute pentru gestionarea profilului utilizatorului
 router.get('/profile', authMiddleware.required, userController.profile);
-router.put('/profile', [
-  authMiddleware.required,
-  check('username', 'Username is required').not().isEmpty(),
-  check('email', 'Please include a valid email').isEmail()
-], userController.updateProfile);
+router.put('/profile', authMiddleware.required, userController.updateProfile);
 router.delete('/profile', authMiddleware.required, userController.deleteProfile);
 
-router.get('/profile/:username', userController.getUserProfile);
+router.get('/profile/:username', authMiddleware.required, userController.getUserProfile);
 
 module.exports = router;

@@ -5,7 +5,8 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   protocol: 'postgres',
   dialectOptions: {
     ssl: false // Dezactivează SSL
-  }
+  },
+  logging: false
 });
 
 module.exports = sequelize;

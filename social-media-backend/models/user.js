@@ -38,6 +38,11 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: DataTypes.NOW,
   },
+  avatarUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: '/default-avatar.png' // O imagine implicită pentru utilizatorii fără avatar personalizat
+  },
 }, {
   tableName: 'Users'
 });

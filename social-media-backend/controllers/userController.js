@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const upload = require('../config/multerConfig');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/user');
@@ -122,14 +123,16 @@ exports.login = async (req, res) => {
 
 exports.getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'username', 'email', 'bio', 'avatarUrl']
+    });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
     res.json(user);
   } catch (error) {
-    console.error('Get current user error:', error);
-    res.status(500).json({ error: 'Failed to fetch user' });
+    console.error('Error getting current user:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -169,12 +172,51 @@ exports.deleteProfile = async (req, res) => {
   }
 };
 
-exports.updateProfile = async (req, res) => {
-  try {
-    const { username, bio } = req.body;
-    await req.user.update({ username, bio });
-    res.json(req.user);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+exports.updateProfile = [
+  upload.single('avatar'),
+  async (req, res) => {
+    try {
+      console.log('Received update profile request:', req.body);
+      const { username, bio, currentPassword, newPassword } = req.body;
+      const updateData = { username, bio };
+
+      // Verifică dacă a fost încărcat un avatar nou
+      if (req.file) {
+        updateData.avatarUrl = `/uploads/avatars/${req.file.filename}`;
+      }
+
+      // Verifică dacă utilizatorul vrea să-și schimbe parola
+      if (currentPassword && newPassword) {
+        const user = await User.findByPk(req.user.id);
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+          return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+        const salt = await bcrypt.genSalt(10);
+        updateData.password = await bcrypt.hash(newPassword, salt);
+      }
+
+      console.log('Update data:', updateData);
+
+      const [updatedRows] = await User.update(updateData, {
+        where: { id: req.user.id },
+        returning: true,
+        individualHooks: true
+      });
+      console.log('Updated rows:', updatedRows);
+
+      if (updatedRows === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const updatedUser = await User.findByPk(req.user.id, {
+        attributes: ['id', 'username', 'email', 'bio', 'avatarUrl']
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
   }
-};
+];

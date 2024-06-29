@@ -6,7 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
-import { AuthProvider } from './context/AuthContext'; // Import corect
+import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
   return (

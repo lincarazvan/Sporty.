@@ -10,10 +10,10 @@ if (!fs.existsSync(uploadDir)) {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir);
+    cb(null, 'uploads/avatars/') // Asigurați-vă că acest director există
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    cb(null, `avatar-${Date.now()}${path.extname(file.originalname)}`)
   }
 });
 
