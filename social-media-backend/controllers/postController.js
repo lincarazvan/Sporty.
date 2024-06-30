@@ -39,7 +39,7 @@ exports.getPosts = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ['id', 'username']
+          attributes: ['id', 'username', 'avatarUrl']
         }
       ],
       order: [['createdAt', 'DESC']]

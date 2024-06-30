@@ -33,7 +33,12 @@ const LeftSidebar = () => {
       ))}
       <ListItem>
         <ListItemIcon>
-          <Avatar src={user.avatarUrl} alt={user.username} />
+        <Avatar 
+  src={user.avatarUrl ? `http://localhost:3000${user.avatarUrl}` : undefined}
+  alt={user.username}
+>
+  {user.username[0]}
+</Avatar>
         </ListItemIcon>
         <ListItemText primary={user.username} secondary={`@${user.username}`} />
         <IconButton onClick={handleClick}>

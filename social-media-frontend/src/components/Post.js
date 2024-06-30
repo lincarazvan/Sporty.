@@ -151,7 +151,14 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar sx={{ mr: 2 }}>{post.User?.username?.[0] || '?'}</Avatar>
+            
+            <Avatar 
+  src={post.User?.avatarUrl ? `http://localhost:3000${post.User.avatarUrl}` : undefined}
+  alt={post.User?.username || 'User'}
+  sx={{ mr: 2 }}
+>
+  {post.User?.username?.[0] || '?'}
+</Avatar>
             <Typography variant="h6" component={RouterLink} to={`/profile/${post.User.username}`}>{post.User?.username || 'Unknown User'}</Typography>
           </Box>
           {user && user.id === post.userId && (
