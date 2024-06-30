@@ -2,17 +2,18 @@ const { Comment, User } = require('../models');
 
 exports.createComment = async (req, res) => {
   try {
-    const { content, postId } = req.body;
+    const { content, postId, parentCommentId } = req.body;
     const userId = req.user.id;
 
     const comment = await Comment.create({
       content,
       userId,
-      postId
+      postId,
+      parentCommentId
     });
 
     const commentWithUser = await Comment.findByPk(comment.id, {
-      include: [{ model: User, attributes: ['id', 'username'] }]
+      include: [{ model: User, attributes: ['id', 'username', 'avatarUrl'] }]
     });
 
     res.status(201).json(commentWithUser);
@@ -26,13 +27,36 @@ exports.getComments = async (req, res) => {
   try {
     const { postId } = req.params;
     const comments = await Comment.findAll({
-      where: { postId },
-      include: [{ model: User, attributes: ['id', 'username'] }],
+      where: { postId, parentCommentId: null },
+      include: [
+        { model: User, attributes: ['id', 'username', 'avatarUrl'] },
+        { 
+          model: Comment, 
+          as: 'Replies', 
+          include: [{ model: User, attributes: ['id', 'username', 'avatarUrl'] }]
+        }
+      ],
       order: [['createdAt', 'DESC']]
     });
     res.status(200).json(comments);
   } catch (error) {
     console.error('Error fetching comments:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.likeComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const comment = await Comment.findByPk(id);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    comment.likes += 1;
+    await comment.save();
+    res.status(200).json({ likes: comment.likes });
+  } catch (error) {
+    console.error('Error liking comment:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
