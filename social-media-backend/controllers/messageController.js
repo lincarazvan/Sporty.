@@ -1,46 +1,99 @@
-const { validationResult } = require('express-validator');
-const Message = require('../models/message');
+const { User, Message } = require('../models');
+const { Op, Sequelize } = require('sequelize');
 
-exports.sendMessage = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { receiverId, content } = req.body;
-  const senderId = req.user.id;
+exports.getConversations = async (req, res) => {
   try {
-    const message = await Message.create({ senderId, receiverId, content });
-    res.status(201).send(message);
+    const userId = req.user.id;
+    const conversations = await Message.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('senderId')), 'otherUserId'],
+        [Sequelize.fn('MAX', Sequelize.col('Message.createdAt')), 'lastMessageTime']
+      ],
+      where: {
+        [Op.or]: [
+          { senderId: userId },
+          { receiverId: userId }
+        ]
+      },
+      include: [{
+        model: User,
+        as: 'sender',
+        attributes: ['id', 'username', 'avatarUrl'],
+        where: {
+          id: { [Op.ne]: userId }
+        },
+        required: false
+      }, {
+        model: User,
+        as: 'receiver',
+        attributes: ['id', 'username', 'avatarUrl'],
+        where: {
+          id: { [Op.ne]: userId }
+        },
+        required: false
+      }],
+      group: [
+        'Message.senderId',
+        'sender.id',
+        'receiver.id'
+      ],
+      order: [[Sequelize.fn('MAX', Sequelize.col('Message.createdAt')), 'DESC']]
+    });
+
+    const formattedConversations = conversations.map(conv => {
+      const otherUser = conv.sender.id === userId ? conv.receiver : conv.sender;
+      return {
+        id: otherUser.id,
+        username: otherUser.username,
+        avatarUrl: otherUser.avatarUrl,
+        lastMessageTime: conv.get('lastMessageTime')
+      };
+    });
+
+    res.json(formattedConversations);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error fetching conversations:', error);
+    res.status(500).json({ message: 'Error fetching conversations' });
   }
 };
 
-exports.getMessagesForUser = async (req, res) => {
-  const userId = req.params.userId;
+exports.getMessages = async (req, res) => {
   try {
-    const messages = await Message.findAll({ where: { receiverId: userId } });
-    res.send(messages);
-  } catch (error) {
-    res.status(500).send('Server Error');
-  }
-};
-
-exports.getConversation = async (req, res) => {
-  const { userId, otherUserId } = req.params;
-  try {
+    const userId = req.user.id;
+    const { otherUserId } = req.params;
     const messages = await Message.findAll({
       where: {
         [Op.or]: [
           { senderId: userId, receiverId: otherUserId },
-          { senderId: otherUserId, receiverId: userId },
-        ],
+          { senderId: otherUserId, receiverId: userId }
+        ]
       },
-      order: [['timestamp', 'ASC']],
+      order: [['createdAt', 'ASC']],
+      include: [{
+        model: User,
+        as: 'sender',
+        attributes: ['id', 'username']
+      }]
     });
-    res.send(messages);
+    res.json(messages);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ message: 'Error fetching messages' });
+  }
+};
+
+exports.sendMessage = async (req, res) => {
+  try {
+    const senderId = req.user.id;
+    const { receiverId, content } = req.body;
+    const newMessage = await Message.create({
+      senderId,
+      receiverId,
+      content
+    });
+    res.status(201).json(newMessage);
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ message: 'Error sending message' });
   }
 };

@@ -52,6 +52,8 @@ User.associate = function(models) {
   User.hasMany(models.Like, { foreignKey: 'userId' });
   User.hasMany(models.Follow, { as: 'Followers', foreignKey: 'followingId' });
   User.hasMany(models.Follow, { as: 'Following', foreignKey: 'followerId' });
+  User.hasMany(models.Message, { as: 'sentMessages', foreignKey: 'senderId' });
+  User.hasMany(models.Message, { as: 'receivedMessages', foreignKey: 'receiverId' });
 };
 
 module.exports = User;

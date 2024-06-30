@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { List, ListItem, ListItemIcon, ListItemText, Avatar, Menu, MenuItem, IconButton } from '@mui/material';
-import { Home, Search, Notifications, Mail, Person, ExitToApp, MoreVert } from '@mui/icons-material';
+import { Home, Search, Notifications, Mail, Person, ExitToApp, MoreVert, Chat } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 
@@ -20,7 +20,7 @@ const LeftSidebar = () => {
     { text: 'Home', icon: <Home />, link: '/home' },
     { text: 'Search', icon: <Search />, link: '/search' },
     { text: 'Notifications', icon: <Notifications />, link: '/notifications' },
-    { text: 'Messages', icon: <Mail />, link: '/messages' },
+    { text: 'Messages', icon: <Mail />, link: '/chat' },
   ];
 
   return (
