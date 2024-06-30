@@ -13,6 +13,7 @@ router.get('/', authMiddleware.required, postController.getPosts);
 router.get('/:id', authMiddleware.required, postController.getPostById);
 
 router.delete('/:id', authMiddleware.required, postController.deletePost);
+router.delete('/:id/image', authMiddleware.required, postController.deletePostImage);
 
 router.put('/:id', [
   authMiddleware.required,

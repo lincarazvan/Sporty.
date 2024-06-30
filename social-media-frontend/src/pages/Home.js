@@ -30,6 +30,14 @@ const Home = () => {
     setPosts([newPost, ...posts]);
   };
 
+  const handlePostUpdate = (updatedPost) => {
+    setPosts(posts.map(post => post.id === updatedPost.id ? updatedPost : post));
+  };
+  
+  const handlePostDelete = (postId) => {
+    setPosts(posts.filter(post => post.id !== postId));
+  };
+
   if (loading) {
     return <Typography variant="h6">Loading...</Typography>;
   }
@@ -40,8 +48,13 @@ const Home = () => {
         <CreatePost onPostCreated={handleNewPost} />
       </Paper>
       <Typography variant="h6" gutterBottom>Latest Posts</Typography>
-      {posts.map((post) => (
-        <Post key={post.id} post={post} />
+      {posts.map(post => (
+        <Post 
+          key={post.id} 
+          post={post} 
+          onPostUpdate={handlePostUpdate}
+          onPostDelete={handlePostDelete}
+        />
       ))}
     </>
   );

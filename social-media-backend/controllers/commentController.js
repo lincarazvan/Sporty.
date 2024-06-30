@@ -58,3 +58,28 @@ exports.deleteComment = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+exports.updateComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+
+    const comment = await Comment.findByPk(id);
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    if (comment.userId !== userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    comment.content = content;
+    await comment.save();
+
+    res.status(200).json(comment);
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
