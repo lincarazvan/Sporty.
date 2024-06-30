@@ -36,7 +36,7 @@ const ModalContent = styled(Paper)(({ theme }) => ({
 
 const StyledButton = styled(Button)(({ theme }) => ({
   color: theme.palette.primary.main,
-  '&.Mui-disabled': {
+  "&.Mui-disabled": {
     color: theme.palette.primary.main,
   },
 }));
@@ -123,22 +123,22 @@ const Profile = () => {
           {profile.bio || "No bio available"}
         </Typography>
         <Box display="flex" justifyContent="space-around" mb={2}>
-  <StyledButton disabled>
-    <Typography variant="body2">
-      <strong>{posts.length}</strong> posts
-    </Typography>
-  </StyledButton>
-  <Button onClick={() => handleOpenModal(followers, 'Followers')}>
-    <Typography variant="body2">
-      <strong>{followers.length}</strong> followers
-    </Typography>
-  </Button>
-  <Button onClick={() => handleOpenModal(following, 'Following')}>
-    <Typography variant="body2">
-      <strong>{following.length}</strong> following
-    </Typography>
-  </Button>
-</Box>
+          <StyledButton disabled>
+            <Typography variant="body2">
+              <strong>{posts.length}</strong> posts
+            </Typography>
+          </StyledButton>
+          <Button onClick={() => handleOpenModal(followers, "Followers")}>
+            <Typography variant="body2">
+              <strong>{followers.length}</strong> followers
+            </Typography>
+          </Button>
+          <Button onClick={() => handleOpenModal(following, "Following")}>
+            <Typography variant="body2">
+              <strong>{following.length}</strong> following
+            </Typography>
+          </Button>
+        </Box>
       </Paper>
 
       <Typography variant="h6" gutterBottom>
