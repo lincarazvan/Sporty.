@@ -30,7 +30,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [comments, setComments] = useState([]);
-  const [commentCount, setCommentCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(post.commentCount || 0);
   const [newComment, setNewComment] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -89,21 +89,17 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
 
   const handleAddComment = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/comments",
-        {
-          content: newComment,
-          postId: post.id,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-      setComments((prevComments) => [response.data, ...prevComments]);
-      setCommentCount((prevCount) => prevCount + 1);
-      setNewComment("");
+      const response = await axios.post('http://localhost:3000/api/comments', {
+        content: newComment,
+        postId: post.id
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setComments(prevComments => [response.data, ...prevComments]);
+      setCommentCount(prevCount => prevCount + 1);
+      setNewComment('');
     } catch (error) {
-      console.error("Error adding comment:", error);
+      console.error('Error adding comment:', error);
     }
   };
 
@@ -354,6 +350,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
                 comments={comments}
                 setCommentCount={setCommentCount}
                 postId={post.id}
+                isReply={false}
               />
             ))}
           </Box>

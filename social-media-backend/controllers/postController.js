@@ -1,6 +1,5 @@
 const { validationResult } = require('express-validator');
-const { Post, User } = require('../models');
-const Comment = require('../models/comment');
+const { Post, User,Comment,Sequelize } = require('../models');
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
@@ -39,9 +38,48 @@ exports.getPosts = async (req, res) => {
       include: [
         {
           model: User,
+          as: 'User',
           attributes: ['id', 'username', 'avatarUrl']
+        },
+        {
+          model: Comment,
+          as: 'Comments',
+          include: [
+            {
+              model: User,
+              as: 'User',
+              attributes: ['id', 'username', 'avatarUrl']
+            },
+            {
+              model: Comment,
+              as: 'Replies',
+              include: [
+                {
+                  model: User,
+                  as: 'User',
+                  attributes: ['id', 'username', 'avatarUrl']
+                }
+              ]
+            }
+          ],
+          where: { parentCommentId: null },
+          separate: true
         }
       ],
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`(
+              SELECT COUNT(DISTINCT "Comments"."id") + 
+              COUNT(DISTINCT "Replies"."id")
+              FROM "Comments"
+              LEFT OUTER JOIN "Comments" AS "Replies" ON "Comments"."id" = "Replies"."parentCommentId"
+              WHERE "Comments"."postId" = "Post"."id"
+            )`),
+            'commentCount'
+          ]
+        ]
+      },
       order: [['createdAt', 'DESC']]
     });
     res.status(200).json(posts);

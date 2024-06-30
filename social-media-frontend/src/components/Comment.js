@@ -1,81 +1,138 @@
-import React, { useState, useContext } from 'react';
-import { Box, Typography, IconButton, TextField, Button, Menu, MenuItem, Avatar } from '@mui/material';
-import { MoreVert, ThumbUp, Reply } from '@mui/icons-material';
-import { Link as RouterLink } from 'react-router-dom';
-import axios from 'axios';
-import AuthContext from '../context/AuthContext';
-import { formatDistanceToNow } from 'date-fns';
+import React, { useState, useContext } from "react";
+import {
+  Box,
+  Typography,
+  IconButton,
+  TextField,
+  Button,
+  Menu,
+  MenuItem,
+  Avatar,
+} from "@mui/material";
+import { MoreVert, ThumbUp, Reply } from "@mui/icons-material";
+import { Link as RouterLink } from "react-router-dom";
+import axios from "axios";
+import AuthContext from "../context/AuthContext";
+import { formatDistanceToNow } from "date-fns";
 
-const Comment = ({ comment, setComments, comments, setCommentCount, postId }) => {
+const Comment = ({
+  comment,
+  setComments,
+  comments,
+  setCommentCount,
+  postId,
+  isReply = false,
+}) => {
   const { user } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
   const [replyMode, setReplyMode] = useState(false);
-  const [replyContent, setReplyContent] = useState('');
+  const [replyContent, setReplyContent] = useState("");
   const [likes, setLikes] = useState(comment.likes);
 
   const handleEditComment = async () => {
     try {
-      await axios.put(`http://localhost:3000/api/comments/${comment.id}`, { content: editContent }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setComments(comments.map(c => c.id === comment.id ? { ...c, content: editContent } : c));
+      await axios.put(
+        `http://localhost:3000/api/comments/${comment.id}`,
+        { content: editContent },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      setComments((prevComments) =>
+        prevComments.map((c) => {
+          if (c.id === comment.id) {
+            return { ...c, content: editContent };
+          }
+          if (c.Replies) {
+            return {
+              ...c,
+              Replies: c.Replies.map((r) =>
+                r.id === comment.id ? { ...r, content: editContent } : r
+              ),
+            };
+          }
+          return c;
+        })
+      );
       setEditMode(false);
     } catch (error) {
-      console.error('Error editing comment:', error);
+      console.error("Error editing comment:", error);
     }
   };
 
   const handleDeleteComment = async () => {
     try {
       await axios.delete(`http://localhost:3000/api/comments/${comment.id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setComments(comments.filter(c => c.id !== comment.id));
-      setCommentCount(prevCount => prevCount - 1);
+      setComments((prevComments) =>
+        prevComments.filter((c) => {
+          if (c.id === comment.id) {
+            return false;
+          }
+          if (c.Replies) {
+            c.Replies = c.Replies.filter((r) => r.id !== comment.id);
+          }
+          return true;
+        })
+      );
+      setCommentCount((prevCount) => prevCount - 1);
     } catch (error) {
-      console.error('Error deleting comment:', error);
+      console.error("Error deleting comment:", error);
     }
   };
 
   const handleReply = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/api/comments', {
-        content: replyContent,
-        postId,
-        parentCommentId: comment.id
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setComments(prevComments => {
+      const response = await axios.post(
+        "http://localhost:3000/api/comments",
+        {
+          content: replyContent,
+          postId,
+          parentCommentId: comment.id,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      setComments((prevComments) => {
         const updatedComments = [...prevComments];
-        const parentComment = updatedComments.find(c => c.id === comment.id);
+        const parentComment = updatedComments.find((c) => c.id === comment.id);
         if (parentComment) {
-          parentComment.Replies = [...(parentComment.Replies || []), response.data];
+          parentComment.Replies = [
+            ...(parentComment.Replies || []),
+            response.data,
+          ];
         }
         return updatedComments;
       });
+      setCommentCount((prevCount) => prevCount + 1);
       setReplyMode(false);
-      setReplyContent('');
+      setReplyContent("");
     } catch (error) {
-      console.error('Error replying to comment:', error);
+      console.error("Error replying to comment:", error);
     }
   };
 
   const handleLike = async () => {
     try {
-      const response = await axios.post(`http://localhost:3000/api/comments/${comment.id}/like`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await axios.post(
+        `http://localhost:3000/api/comments/${comment.id}/like`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
       setLikes(response.data.likes);
     } catch (error) {
-      console.error('Error liking comment:', error);
+      console.error("Error liking comment:", error);
     }
   };
 
   return (
-    <Box sx={{ mt: 2, ml: comment.parentCommentId ? 4 : 0 }}>
+    <Box sx={{ mt: 2, ml: isReply ? 4 : 0 }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
         <Avatar
           src={comment.User?.avatarUrl ? `http://localhost:3000${comment.User.avatarUrl}` : undefined}
@@ -121,11 +178,13 @@ const Comment = ({ comment, setComments, comments, setCommentCount, postId }) =>
               <ThumbUp fontSize="small" />
             </IconButton>
             <Typography variant="caption" sx={{ ml: 0.5 }}>{likes}</Typography>
-            <IconButton size="small" onClick={() => setReplyMode(!replyMode)} sx={{ ml: 1 }}>
-              <Reply fontSize="small" />
-            </IconButton>
+            {!isReply && (
+              <IconButton size="small" onClick={() => setReplyMode(!replyMode)} sx={{ ml: 1 }}>
+                <Reply fontSize="small" />
+              </IconButton>
+            )}
           </Box>
-          {replyMode && (
+          {!isReply && replyMode && (
             <Box sx={{ mt: 1 }}>
               <TextField
                 fullWidth
@@ -169,6 +228,7 @@ const Comment = ({ comment, setComments, comments, setCommentCount, postId }) =>
           comments={comments}
           setCommentCount={setCommentCount}
           postId={postId}
+          isReply={true}
         />
       ))}
     </Box>
