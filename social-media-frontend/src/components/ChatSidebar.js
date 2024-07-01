@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Box, Typography, TextField, Button, Paper, Avatar, IconButton, Menu, MenuItem } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import SendIcon from '@mui/icons-material/Send';
@@ -71,6 +71,13 @@ const ChatSidebar = ({
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [attachedImage, setAttachedImage] = useState(null);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  useEffect(() => { scrollToBottom() }, [messages]);
 
   const handleEmojiClick = (emojiObject) => {
     setNewMessage(prevMessage => prevMessage + emojiObject.emoji);
@@ -217,6 +224,7 @@ const ChatSidebar = ({
                 ))}
               </React.Fragment>
             ))}
+            <div ref={messagesEndRef} />
             {isTyping && (
               <Typography variant="body2" sx={{ fontStyle: "italic", ml: 1 }}>
                 {selectedConversation.username} is typing...
