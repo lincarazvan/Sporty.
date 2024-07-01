@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const http = require('http');
+const socketIo = require('socket.io');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { sequelize } = require('./models'); // Import sequelize from models
@@ -22,11 +23,11 @@ const Follow = require('./models/follow');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
+const io = socketIo(server, {
   cors: {
     origin: "http://localhost:3001",
-    methods: ["GET", "POST"],
-  },
+    methods: ["GET", "POST"]
+  }
 });
 
 const corsOptions = {
@@ -51,7 +52,6 @@ app.use('/api/password', passwordRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Nu folosim force: true în sincronizare
 sequelize.sync().then(() => {
   console.log('Database synced');
   const PORT = process.env.PORT || 3000;
@@ -60,50 +60,28 @@ sequelize.sync().then(() => {
   });
 }).catch(err => console.log(err));
 
+
 io.on('connection', (socket) => {
-  console.log('A user connected');
+  console.log('New client connected');
+
+  socket.on('join', (userId) => {
+    socket.join(userId);
+    console.log(`User ${userId} joined their room`);
+  });
+
+  socket.on('sendMessage', (message) => {
+    io.to(message.receiverId.toString()).emit('newMessage', message);
+  });
+
+  socket.on('typing', (data) => {
+    socket.to(data.receiverId.toString()).emit('typing', { senderId: data.senderId });
+  });
+
+  socket.on('stopTyping', (data) => {
+    socket.to(data.receiverId.toString()).emit('stopTyping', { senderId: data.senderId });
+  });
 
   socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-
-  socket.on('sendFollowRequest', async ({ followerId, followingId }) => {
-    try {
-      const follow = await Follow.create({ followerId, followingId });
-      io.to(followingId).emit('newFollowRequest', follow);
-    } catch (error) {
-      console.error('Error sending follow request:', error);
-    }
-  });
-
-  socket.on('acceptFollowRequest', async ({ followId }) => {
-    try {
-      const follow = await Follow.findOne({ where: { id: followId, status: 'pending' } });
-      if (follow) {
-        follow.status = 'accepted';
-        await follow.save();
-        io.to(follow.followerId).emit('followRequestAccepted', follow);
-      }
-    } catch (error) {
-      console.error('Error accepting follow request:', error);
-    }
-  });
-
-  socket.on('sendMessage', async ({ senderId, receiverId, content }) => {
-    try {
-      const message = await Message.create({ senderId, receiverId, content });
-      io.to(receiverId).emit('newMessage', message);
-      io.to(senderId).emit('newMessage', message);
-    } catch (error) {
-      console.error('Error sending message:', error);
-    }
-  });
-
-  socket.on('typing', ({ senderId, receiverId }) => {
-    io.to(receiverId).emit('typing', senderId);
-  });
-
-  socket.on('stopTyping', ({ senderId, receiverId }) => {
-    io.to(receiverId).emit('stopTyping', senderId);
+    console.log('Client disconnected');
   });
 });

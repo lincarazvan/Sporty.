@@ -14,9 +14,13 @@ const Message = sequelize.define('Message', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  read: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
+  status: {
+    type: DataTypes.ENUM('sent', 'delivered', 'read'),
+    defaultValue: 'sent'
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 });
 

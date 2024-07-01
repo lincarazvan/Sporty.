@@ -41,14 +41,18 @@ exports.getConversations = async (req, res) => {
     });
 
     const formattedConversations = conversations.map(conv => {
-      const otherUser = conv.sender.id === userId ? conv.receiver : conv.sender;
+      const otherUser = conv.sender && conv.sender.id !== userId ? conv.sender : conv.receiver;
+      if (!otherUser) {
+        console.error('No other user found for conversation:', conv);
+        return null;
+      }
       return {
         id: otherUser.id,
         username: otherUser.username,
         avatarUrl: otherUser.avatarUrl,
         lastMessageTime: conv.get('lastMessageTime')
       };
-    });
+    }).filter(Boolean); // Remove any null entries
 
     res.json(formattedConversations);
   } catch (error) {
@@ -72,7 +76,7 @@ exports.getMessages = async (req, res) => {
       include: [{
         model: User,
         as: 'sender',
-        attributes: ['id', 'username']
+        attributes: ['id', 'username', 'avatarUrl']
       }]
     });
     res.json(messages);
@@ -89,11 +93,31 @@ exports.sendMessage = async (req, res) => {
     const newMessage = await Message.create({
       senderId,
       receiverId,
-      content
+      content,
+      status: 'sent'
     });
-    res.status(201).json(newMessage);
+    const messageWithSender = await Message.findByPk(newMessage.id, {
+      include: [{
+        model: User,
+        as: 'sender',
+        attributes: ['id', 'username', 'avatarUrl']
+      }]
+    });
+    res.status(201).json(messageWithSender);
   } catch (error) {
     console.error('Error sending message:', error);
     res.status(500).json({ message: 'Error sending message' });
+  }
+};
+
+exports.updateMessageStatus = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { status } = req.body;
+    await Message.update({ status }, { where: { id: messageId } });
+    res.json({ message: 'Message status updated successfully' });
+  } catch (error) {
+    console.error('Error updating message status:', error);
+    res.status(500).json({ message: 'Error updating message status' });
   }
 };

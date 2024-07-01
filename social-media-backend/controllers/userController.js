@@ -8,6 +8,7 @@ const Comment = require('../models/comment'); // Adaugă importurile necesare
 const Follow = require('../models/follow'); // Adaugă importurile necesare
 const Notification = require('../models/notification'); // Adaugă importurile necesare
 const PrivacySetting = require('../models/privacySetting'); // Adaugă importurile necesare
+const { Op } = require('sequelize');
 
 exports.getUsers = async (req, res) => {
   try {
@@ -217,3 +218,25 @@ exports.updateProfile = [
     }
   }
 ];
+
+exports.searchUsers = async (req, res) => {
+  try {
+    const { query } = req.query;
+    const users = await User.findAll({
+      where: {
+        username: {
+          [Op.iLike]: `%${query}%`
+        },
+        id: {
+          [Op.ne]: req.user.id // Exclude the current user
+        }
+      },
+      attributes: ['id', 'username', 'avatarUrl'],
+      limit: 10
+    });
+    res.json(users);
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ message: 'Error searching users' });
+  }
+};

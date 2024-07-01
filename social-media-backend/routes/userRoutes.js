@@ -34,4 +34,6 @@ router.delete('/profile', authMiddleware.required, userController.deleteProfile)
 
 router.get('/profile/:username', authMiddleware.required, userController.getUserProfile);
 
+router.get('/search', authMiddleware.required, userController.searchUsers);
+
 module.exports = router;
