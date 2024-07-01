@@ -8,5 +8,6 @@ router.get('/conversations', authMiddleware.required, messageController.getConve
 router.get('/:otherUserId', authMiddleware.required, messageController.getMessages);
 router.post('/', authMiddleware.required, messageController.sendMessage);
 router.put('/:messageId/status', authMiddleware.required, messageController.updateMessageStatus);
+router.delete('/:messageId', authMiddleware.required, messageController.deleteMessage);
 
 module.exports = router;

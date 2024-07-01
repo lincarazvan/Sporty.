@@ -114,10 +114,43 @@ exports.updateMessageStatus = async (req, res) => {
   try {
     const { messageId } = req.params;
     const { status } = req.body;
-    await Message.update({ status }, { where: { id: messageId } });
-    res.json({ message: 'Message status updated successfully' });
+    const message = await Message.findByPk(messageId);
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    message.status = status;
+    if (status === 'seen') {
+      message.seenAt = new Date();
+    }
+    await message.save();
+    res.json(message);
   } catch (error) {
     console.error('Error updating message status:', error);
-    res.status(500).json({ message: 'Error updating message status' });
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user.id;
+
+    const message = await Message.findByPk(messageId);
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    if (message.senderId !== userId) {
+      return res.status(403).json({ error: 'Unauthorized to delete this message' });
+    }
+
+    message.isDeleted = true;
+    message.content = 'This message has been deleted';
+    await message.save();
+
+    res.json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };

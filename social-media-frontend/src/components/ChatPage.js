@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { Container, Paper, Grid } from "@mui/material";
+import { Container, Paper, IconButton } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AuthContext from "../context/AuthContext";
 import axios from "axios";
 import io from "socket.io-client";
@@ -9,7 +10,7 @@ import ChatSidebar from "./ChatSidebar";
 import SearchUserDialog from "./SearchUserDialog";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
-  height: "calc(100vh - 64px)", // Adjust based on your app's header height
+  height: "calc(100vh - 100px)", // Adjust based on your app's header height
   padding: theme.spacing(2),
   display: "flex",
   flexDirection: "column",
@@ -22,6 +23,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
 }));
 
+
 const ChatPage = () => {
   const { user } = useContext(AuthContext);
   const [conversations, setConversations] = useState([]);
@@ -31,11 +33,42 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showConversationList, setShowConversationList] = useState(true);
   const socketRef = useRef();
   const typingTimeoutRef = useRef(null);
   const [searchUserDialogOpen, setSearchUserDialogOpen] = useState(false);
   const [searchUserQuery, setSearchUserQuery] = useState("");
   const [searchUserResults, setSearchUserResults] = useState([]);
+
+  const handleSelectConversation = (conversation) => {
+    setSelectedConversation(conversation);
+    fetchMessages(conversation.id);
+    setShowConversationList(false);
+  };
+
+  const handleBackToList = () => {
+    setShowConversationList(true);
+    setSelectedConversation(null);
+  };
+
+  const updateMessageStatus = async (messageId, status) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/api/messages/${messageId}/status`,
+        { status },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      setMessages(prevMessages => 
+        prevMessages.map(msg => 
+          msg.id === messageId ? { ...msg, status: response.data.status, seenAt: response.data.seenAt } : msg
+        )
+      );
+    } catch (error) {
+      console.error('Error updating message status:', error);
+    }
+  };
 
   const setupSocketConnection = useCallback(() => {
     socketRef.current = io("http://localhost:3000");
@@ -99,11 +132,6 @@ const ChatPage = () => {
     } catch (error) {
       console.error("Error fetching conversations:", error);
     }
-  };
-
-  const handleSelectConversation = (conversation) => {
-    setSelectedConversation(conversation);
-    fetchMessages(conversation.id);
   };
 
   const fetchMessages = async (otherUserId) => {
@@ -205,21 +233,36 @@ const ChatPage = () => {
     }
   };
 
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      await axios.delete(`http://localhost:3000/api/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setMessages(prevMessages => prevMessages.map(msg => 
+        msg.id === messageId ? { ...msg, isDeleted: true, content: 'This message has been deleted' } : msg
+      ));
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
   return (
     <StyledContainer maxWidth="xl">
       <StyledPaper elevation={3}>
-        <Grid container sx={{ height: '100%' }}>
-          <Grid item xs={12} md={8} sx={{ borderRight: 1, borderColor: 'divider' }}>
-            <ConversationList
-              conversations={filteredConversations}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              onSelectConversation={handleSelectConversation}
-              selectedConversationId={selectedConversation?.id}
-              onNewConversation={() => setSearchUserDialogOpen(true)}
-            />
-          </Grid>
-          <Grid item md={4} sx={{ display: { xs: 'none', md: 'block' } }}>
+        {showConversationList ? (
+          <ConversationList
+            conversations={filteredConversations}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onSelectConversation={handleSelectConversation}
+            selectedConversationId={selectedConversation?.id}
+            onNewConversation={() => setSearchUserDialogOpen(true)}
+          />
+        ) : (
+          <>
+            <IconButton onClick={handleBackToList} sx={{ position: 'absolute', top: 10, left: 10, zIndex: 1 }}>
+              <ArrowBackIcon />
+            </IconButton>
             <ChatSidebar
               selectedConversation={selectedConversation}
               messages={messages}
@@ -229,9 +272,10 @@ const ChatPage = () => {
               onTyping={handleTyping}
               currentUserId={user.id}
               isTyping={isTyping}
+              onDeleteMessage={handleDeleteMessage}
             />
-          </Grid>
-        </Grid>
+          </>
+        )}
       </StyledPaper>
 
       <SearchUserDialog
@@ -248,3 +292,4 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
+
