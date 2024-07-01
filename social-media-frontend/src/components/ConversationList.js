@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, List, ListItem, ListItemText, ListItemAvatar, Avatar, TextField, Button, InputAdornment, Typography } from '@mui/material';
+import { Box, List, ListItem, ListItemText, ListItemAvatar, Avatar, TextField, Button, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import { styled } from '@mui/material/styles';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { Container, Paper, Grid, Box } from "@mui/material";
+import { Container, Paper, Grid } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import AuthContext from "../context/AuthContext";
 import axios from "axios";
