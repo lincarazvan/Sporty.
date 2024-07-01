@@ -273,6 +273,7 @@ const ChatPage = () => {
               currentUserId={user.id}
               isTyping={isTyping}
               onDeleteMessage={handleDeleteMessage}
+              onBackToList={handleBackToList}
             />
           </>
         )}
