@@ -8,6 +8,7 @@ import io from "socket.io-client";
 import ConversationList from "./ConversationList";
 import ChatSidebar from "./ChatSidebar";
 import SearchUserDialog from "./SearchUserDialog";
+import { useLocation } from "react-router-dom";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   height: "calc(100vh - 70px)", // Ajustează înălțimea bazată pe înălțimea header-ului aplicației
@@ -38,6 +39,16 @@ const ChatPage = () => {
   const [searchUserDialogOpen, setSearchUserDialogOpen] = useState(false);
   const [searchUserQuery, setSearchUserQuery] = useState("");
   const [searchUserResults, setSearchUserResults] = useState([]);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.openChat) {
+      const { id, username } = location.state.openChat;
+      handleSelectConversation({ id, username });
+    }
+  }, [location.state]);
+
 
   const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);

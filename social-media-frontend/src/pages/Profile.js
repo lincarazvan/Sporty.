@@ -17,6 +17,7 @@ import axios from "axios";
 import AuthContext from "../context/AuthContext";
 import Post from "../components/Post";
 import FollowButton from "../components/FollowButton";
+import MessageButton from "../components/MessageButton";
 
 const StyledModal = styled(Modal)(({ theme }) => ({
   display: "flex",
@@ -115,7 +116,10 @@ const Profile = () => {
               @{profile.username}
             </Typography>
             {user && user.id !== profile.id && (
+              <Box sx={{mt: 1}}>
               <FollowButton userId={profile.id} />
+              <MessageButton userId={profile.id} username={profile.username} />
+              </Box>
             )}
           </Box>
         </Box>
