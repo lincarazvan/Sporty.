@@ -10,7 +10,7 @@ import ChatSidebar from "./ChatSidebar";
 import SearchUserDialog from "./SearchUserDialog";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
-  height: "calc(100vh - 100px)", // Adjust based on your app's header height
+  height: "calc(100vh - 70px)", // Ajustează înălțimea bazată pe înălțimea header-ului aplicației
   padding: theme.spacing(2),
   display: "flex",
   flexDirection: "column",
@@ -22,7 +22,6 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   overflow: "hidden",
   backgroundColor: theme.palette.background.default,
 }));
-
 
 const ChatPage = () => {
   const { user } = useContext(AuthContext);
@@ -49,25 +48,6 @@ const ChatPage = () => {
   const handleBackToList = () => {
     setShowConversationList(true);
     setSelectedConversation(null);
-  };
-
-  const updateMessageStatus = async (messageId, status) => {
-    try {
-      const response = await axios.put(
-        `http://localhost:3000/api/messages/${messageId}/status`,
-        { status },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          msg.id === messageId ? { ...msg, status: response.data.status, seenAt: response.data.seenAt } : msg
-        )
-      );
-    } catch (error) {
-      console.error('Error updating message status:', error);
-    }
   };
 
   const setupSocketConnection = useCallback(() => {
@@ -293,4 +273,3 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
-

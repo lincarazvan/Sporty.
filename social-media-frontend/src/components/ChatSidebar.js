@@ -75,9 +75,9 @@ const ChatSidebar = ({
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }
+  };
 
-  useEffect(() => { scrollToBottom() }, [messages]);
+  useEffect(() => { scrollToBottom(); }, [messages]);
 
   const handleEmojiClick = (emojiObject) => {
     setNewMessage(prevMessage => prevMessage + emojiObject.emoji);
@@ -207,17 +207,6 @@ const ChatSidebar = ({
                             </IconButton>
                           )}
                         </Box>
-                        {message.senderId === currentUserId && (
-                          <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
-                            {message.status === 'sent' && '✓'}
-                            {message.status === 'delivered' && '✓✓'}
-                            {message.status === 'seen' && (
-                              <>
-                                ✓✓ Seen {formatDistanceToNow(new Date(message.seenAt), { addSuffix: true })}
-                              </>
-                            )}
-                          </Typography>
-                        )}
                       </>
                     )}
                   </MessageBubble>
@@ -235,10 +224,7 @@ const ChatSidebar = ({
             <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
               <EmojiEmotionsIcon />
             </IconButton>
-            <IconButton component="label">
-              <AttachFileIcon />
-              <input type="file" hidden onChange={handleImageUpload} accept="image/*" />
-            </IconButton>
+            
             <TextField
               fullWidth
               variant="outlined"
