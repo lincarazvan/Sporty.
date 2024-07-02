@@ -1,10 +1,10 @@
 const express = require('express');
-const { check, validationResult } = require('express-validator');
+const router = express.Router();
 const notificationController = require('../controllers/notificationController');
 const authMiddleware = require('../middleware/authMiddleware');
-const router = express.Router();
 
 router.get('/', authMiddleware.required, notificationController.getNotifications);
-router.post('/mark-read', authMiddleware.required, notificationController.markNotificationsRead);
+router.put('/mark-read', authMiddleware.required, notificationController.markAsRead);
+router.get('/unread-count', authMiddleware.required, notificationController.getUnreadCount);
 
 module.exports = router;

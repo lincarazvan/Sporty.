@@ -1,4 +1,4 @@
-const { User, Message } = require('../models');
+const { User, Message, Notification } = require('../models');
 const { Op, Sequelize } = require('sequelize');
 
 exports.getConversations = async (req, res) => {
@@ -52,7 +52,7 @@ exports.getConversations = async (req, res) => {
         avatarUrl: otherUser.avatarUrl,
         lastMessageTime: conv.get('lastMessageTime')
       };
-    }).filter(Boolean); // Remove any null entries
+    }).filter(Boolean);
 
     res.json(formattedConversations);
   } catch (error) {
@@ -103,6 +103,17 @@ exports.sendMessage = async (req, res) => {
         attributes: ['id', 'username', 'avatarUrl']
       }]
     });
+
+    const notification = await Notification.create({
+      userId: receiverId,
+      type: 'message',
+      message: `Ai primit un mesaj nou de la ${req.user.username}.`,
+      relatedId: newMessage.id
+    });
+
+    global.io.to(receiverId.toString()).emit('newMessage', messageWithSender);
+    global.io.to(receiverId.toString()).emit('notification', notification);
+
     res.status(201).json(messageWithSender);
   } catch (error) {
     console.error('Error sending message:', error);

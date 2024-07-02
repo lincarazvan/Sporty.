@@ -42,19 +42,18 @@ const ChatPage = () => {
 
   const location = useLocation();
 
+  const handleSelectConversation = useCallback((conversation) => {
+    setSelectedConversation(conversation);
+    fetchMessages(conversation.id);
+    setShowConversationList(false);
+  },[]);
+
   useEffect(() => {
     if (location.state?.openChat) {
       const { id, username } = location.state.openChat;
       handleSelectConversation({ id, username });
     }
-  }, [location.state]);
-
-
-  const handleSelectConversation = (conversation) => {
-    setSelectedConversation(conversation);
-    fetchMessages(conversation.id);
-    setShowConversationList(false);
-  };
+  }, [location.state, handleSelectConversation]);
 
   const handleBackToList = () => {
     setShowConversationList(true);

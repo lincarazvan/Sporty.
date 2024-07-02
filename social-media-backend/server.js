@@ -20,7 +20,6 @@ const reportRoutes = require('./routes/reportRoutes');
 const { Server } = require('socket.io');
 const Message = require('./models/message');
 const Follow = require('./models/follow');
-
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -60,6 +59,7 @@ sequelize.sync().then(() => {
   });
 }).catch(err => console.log(err));
 
+global.io=io;
 
 io.on('connection', (socket) => {
   console.log('New client connected');
@@ -85,3 +85,5 @@ io.on('connection', (socket) => {
     console.log('Client disconnected');
   });
 });
+
+module.exports = { io };

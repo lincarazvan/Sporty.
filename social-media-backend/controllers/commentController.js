@@ -1,4 +1,4 @@
-const { Comment, User } = require('../models');
+const { Comment, User, Post, Notification } = require('../models');
 
 exports.createComment = async (req, res) => {
   try {
@@ -15,6 +15,18 @@ exports.createComment = async (req, res) => {
     const commentWithUser = await Comment.findByPk(comment.id, {
       include: [{ model: User, attributes: ['id', 'username', 'avatarUrl'] }]
     });
+
+    const post = await Post.findByPk(postId, { include: [{ model: User }] });
+    if (post.userId !== userId) {
+      const notification = await Notification.create({
+        userId: post.userId,
+        type: 'comment',
+        message: `${req.user.username} a comentat la postarea ta.`,
+        relatedId: postId
+      });
+      
+      global.io.to(post.userId.toString()).emit('notification', notification);
+    }
 
     res.status(201).json(commentWithUser);
   } catch (error) {

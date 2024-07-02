@@ -1,5 +1,4 @@
-const Like = require('../models/like');
-const Post = require('../models/post');
+const { Like, Post, Notification, User } = require('../models');
 
 exports.toggleLike = async (req, res) => {
   try {
@@ -13,6 +12,19 @@ exports.toggleLike = async (req, res) => {
       res.json({ liked: false });
     } else {
       await Like.create({ userId, postId });
+      
+      const post = await Post.findByPk(postId, { include: [{ model: User }] });
+      if (post.userId !== userId) {
+        const notification = await Notification.create({
+          userId: post.userId,
+          type: 'like',
+          message: `${req.user.username} a apreciat postarea ta.`,
+          relatedId: postId
+        });
+        
+        global.io.to(post.userId.toString()).emit('notification', notification);
+      }
+      
       res.json({ liked: true });
     }
   } catch (error) {

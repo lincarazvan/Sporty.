@@ -1,4 +1,4 @@
-const { Follow, User } = require('../models');
+const { Follow, User, Notification } = require('../models');
 
 exports.followUser = async (req, res) => {
   try {
@@ -14,11 +14,20 @@ exports.followUser = async (req, res) => {
       defaults: { followerId, followingId }
     });
 
-    if (!created) {
-      return res.status(400).json({ message: "You're already following this user" });
+    if (created) {
+      const notification = await Notification.create({
+        userId: followingId,
+        type: 'follow',
+        message: `${req.user.username} a început să te urmărească.`,
+        relatedId: followerId
+      });
+      
+      global.io.to(followingId.toString()).emit('notification', notification);
+      
+      res.status(201).json(follow);
+    } else {
+      res.status(400).json({ message: "You're already following this user" });
     }
-
-    res.status(201).json(follow);
   } catch (error) {
     console.error('Error in followUser:', error);
     res.status(500).json({ message: 'Error following user', error: error.message });
