@@ -19,7 +19,9 @@ exports.followUser = async (req, res) => {
         userId: followingId,
         type: 'follow',
         message: `${req.user.username} a început să te urmărească.`,
-        relatedId: followerId
+        relatedId: followerId,
+        senderId: followerId,
+        senderUsername: req.user.username
       });
       
       global.io.to(followingId.toString()).emit('notification', notification);

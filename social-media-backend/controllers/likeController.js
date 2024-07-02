@@ -19,7 +19,9 @@ exports.toggleLike = async (req, res) => {
           userId: post.userId,
           type: 'like',
           message: `${req.user.username} a apreciat postarea ta.`,
-          relatedId: postId
+          relatedId: postId,
+          senderId: userId,  // Folosim userId în loc de followerId sau senderId
+          senderUsername: req.user.username
         });
         
         global.io.to(post.userId.toString()).emit('notification', notification);

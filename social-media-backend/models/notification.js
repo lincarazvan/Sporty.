@@ -21,7 +21,19 @@ const Notification = sequelize.define('Notification', {
   relatedId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+  },
+  senderId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  senderUsername: {
+    type: DataTypes.STRING,
+    allowNull: true,
   }
 });
+
+Notification.associate = function(models) {
+  Notification.belongsTo(models.User, { as: 'sender', foreignKey: 'senderId' });
+};
 
 module.exports = Notification;

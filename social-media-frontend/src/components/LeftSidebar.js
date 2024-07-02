@@ -1,8 +1,7 @@
-// src/components/LeftSidebar.js
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { List, ListItem, ListItemIcon, ListItemText, Avatar, Menu, MenuItem, IconButton, Badge } from '@mui/material';
 import { Home, Search, Notifications, Mail, Person, ExitToApp, MoreVert } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
 
@@ -10,9 +9,10 @@ const LeftSidebar = () => {
   const { user, logout } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = useState(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const location = useLocation();
 
-  useEffect(() => {
-    const fetchUnreadNotificationsCount = async () => {
+  const fetchUnreadNotificationsCount = useCallback(async () => {
+    if (user && user.id) {
       try {
         const response = await axios.get('http://localhost:3000/api/notifications/unread-count', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -21,10 +21,17 @@ const LeftSidebar = () => {
       } catch (error) {
         console.error('Error fetching unread notifications count:', error);
       }
-    };
+    }
+  }, [user]);
 
+  useEffect(() => {
     fetchUnreadNotificationsCount();
-  }, [user.id]);
+
+    // Resetăm contorul când utilizatorul vizitează pagina de notificări
+    if (location.pathname === '/notifications') {
+      setUnreadNotifications(0);
+    }
+  }, [location.pathname, fetchUnreadNotificationsCount]);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);

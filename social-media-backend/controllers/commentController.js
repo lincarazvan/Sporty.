@@ -22,7 +22,9 @@ exports.createComment = async (req, res) => {
         userId: post.userId,
         type: 'comment',
         message: `${req.user.username} a comentat la postarea ta.`,
-        relatedId: postId
+        relatedId: postId,
+        senderId: followerId,
+        senderUsername: req.user.username
       });
       
       global.io.to(post.userId.toString()).emit('notification', notification);

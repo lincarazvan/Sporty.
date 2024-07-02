@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Typography, List, ListItem, ListItemText, Divider } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -20,7 +22,6 @@ const NotificationsPage = () => {
     };
 
     fetchNotifications();
-    // Marcăm notificările ca citite
     markNotificationsAsRead();
   }, [user.id]);
 
@@ -34,6 +35,15 @@ const NotificationsPage = () => {
     }
   };
 
+  const handleNotificationClick = (notification) => {
+    if (notification.type === 'follow' && notification.senderUsername) {
+      navigate(`/profile/${notification.senderUsername}`);
+    } else if (notification.type === 'message' && notification.senderId) {
+      navigate('/chat', { state: { openChat: { id: notification.senderId, username: notification.senderUsername } } });
+    }
+    // Pentru alte tipuri de notificări, puteți adăuga logica corespunzătoare aici
+  };
+
   return (
     <>
       <Typography variant="h4" gutterBottom>Notifications</Typography>
@@ -45,7 +55,11 @@ const NotificationsPage = () => {
         ) : (
           notifications.map((notification, index) => (
             <React.Fragment key={notification.id}>
-              <ListItem alignItems="flex-start">
+              <ListItem 
+                button 
+                onClick={() => handleNotificationClick(notification)}
+                alignItems="flex-start"
+              >
                 <ListItemText
                   primary={notification.message}
                   secondary={new Date(notification.createdAt).toLocaleString()}

@@ -65,6 +65,11 @@ exports.getMessages = async (req, res) => {
   try {
     const userId = req.user.id;
     const { otherUserId } = req.params;
+
+    if (!otherUserId || otherUserId === 'null') {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
     const messages = await Message.findAll({
       where: {
         [Op.or]: [
@@ -108,7 +113,9 @@ exports.sendMessage = async (req, res) => {
       userId: receiverId,
       type: 'message',
       message: `Ai primit un mesaj nou de la ${req.user.username}.`,
-      relatedId: newMessage.id
+      relatedId: newMessage.id,
+      senderId: userId,
+      senderUsername: req.user.username
     });
 
     global.io.to(receiverId.toString()).emit('newMessage', messageWithSender);
