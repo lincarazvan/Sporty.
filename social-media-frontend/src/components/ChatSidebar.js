@@ -3,13 +3,11 @@ import { Box, Typography, TextField, Button, Paper, Avatar, IconButton, Menu, Me
 import { styled } from '@mui/material/styles';
 import SendIcon from '@mui/icons-material/Send';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { format, formatDistanceToNow, isToday, isYesterday, isSameDay } from 'date-fns';
+import { format, isToday, isYesterday, isSameDay } from 'date-fns';
 import { Link } from 'react-router-dom';
 import EmojiPicker from 'emoji-picker-react';
-import Resizer from 'react-image-file-resizer';
 
 const StyledBox = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -82,22 +80,6 @@ const ChatSidebar = ({
   const handleEmojiClick = (emojiObject) => {
     setNewMessage(prevMessage => prevMessage + emojiObject.emoji);
     setShowEmojiPicker(false);
-  };
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    Resizer.imageFileResizer(
-      file,
-      300,
-      300,
-      'JPEG',
-      100,
-      0,
-      (uri) => {
-        setAttachedImage(uri);
-      },
-      'base64'
-    );
   };
 
   const handleMenuOpen = (event, message) => {
