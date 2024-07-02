@@ -15,6 +15,26 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+exports.searchPosts = async (req, res) => {
+  try {
+    const { query } = req.query;
+    const posts = await Post.findAll({
+      where: {
+        content: {
+          [Op.iLike]: `%${query}%`
+        }
+      },
+      include: [{ model: User, attributes: ['id', 'username', 'avatarUrl'] }],
+      order: [['createdAt', 'DESC']],
+      limit: 20
+    });
+    res.json(posts);
+  } catch (error) {
+    console.error('Error searching posts:', error);
+    res.status(500).json({ message: 'Error searching posts' });
+  }
+};
+
 exports.createPost = [upload.single('image'), async (req, res) => {
   try {
     const { content } = req.body;

@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ChatPage from './components/ChatPage';
 import NotificationsPage from './pages/NotificationsPage';
+import SearchPage from './pages/SearchPage';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -90,9 +91,17 @@ const App = () => {
           />
           <Route path="/notifications" element={
             <PrivateRoute>
-                <NotificationsPage />
+              <NotificationsPage />
             </PrivateRoute>
           } />
+          <Route
+            path="/search"
+            element={
+              <PrivateRoute>
+                <SearchPage />
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

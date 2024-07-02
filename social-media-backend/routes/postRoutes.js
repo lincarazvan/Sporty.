@@ -22,4 +22,6 @@ router.put('/:id', [
 
 router.get('/user/:userId', authMiddleware.required, postController.getUserPosts);
 
+router.get('/search', authMiddleware.required, postController.searchPosts);
+
 module.exports = router;

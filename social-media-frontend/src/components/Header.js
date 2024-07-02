@@ -1,8 +1,9 @@
-import React from 'react';
-import { AppBar, Toolbar, InputBase, IconButton, Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { AppBar, Toolbar, InputBase, IconButton, Box, List, ListItem, ListItemText, ListItemAvatar, Avatar, Paper } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -47,6 +48,46 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const Header = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (searchTerm.trim() === '') {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        const response = await axios.get(`http://localhost:3000/api/users/search?query=${searchTerm}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setSearchResults(response.data);
+      } catch (error) {
+        console.error('Error searching users:', error);
+      }
+    };
+
+    const debounce = setTimeout(() => {
+      searchUsers();
+    }, 300);
+
+    return () => clearTimeout(debounce);
+  }, [searchTerm]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setShowResults(true);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setShowResults(false);
+    navigate(`/search?q=${searchTerm}`);
+  };
+
   return (
     <AppBar position="fixed" color="default" elevation={1} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Toolbar sx={{ minHeight: '40px !important', padding: '0 16px' }}>
@@ -61,15 +102,41 @@ const Header = () => {
           <img src="/favicon.ico" alt="Sporty Logo" style={{ height: '24px' }} />
         </IconButton>
         <Box sx={{ flexGrow: 1 }} />
-        <Search>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder="Search…"
-            inputProps={{ 'aria-label': 'search' }}
-          />
-        </Search>
+        <Box sx={{ position: 'relative' }}>
+          <form onSubmit={handleSearchSubmit}>
+            <Search>
+              <SearchIconWrapper>
+                <SearchIcon />
+              </SearchIconWrapper>
+              <StyledInputBase
+                placeholder="Search users…"
+                inputProps={{ 'aria-label': 'search' }}
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onBlur={() => setTimeout(() => setShowResults(false), 200)}
+              />
+            </Search>
+          </form>
+          {showResults && searchResults.length > 0 && (
+            <Paper sx={{ position: 'absolute', top: '100%', right: 0, left: 0, zIndex: 1, maxHeight: 300, overflow: 'auto' }}>
+              <List>
+                {searchResults.map((user) => (
+                  <ListItem 
+                    key={user.id} 
+                    component={Link} 
+                    to={`/profile/${user.username}`}
+                    onClick={() => setShowResults(false)}
+                  >
+                    <ListItemAvatar>
+                      <Avatar src={user.avatarUrl} alt={user.username} />
+                    </ListItemAvatar>
+                    <ListItemText primary={user.username} />
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          )}
+        </Box>
       </Toolbar>
     </AppBar>
   );
