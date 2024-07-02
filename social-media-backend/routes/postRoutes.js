@@ -9,6 +9,7 @@ router.post('/', [
   check('content', 'Content is required').not().isEmpty()
 ], postController.createPost);
 
+router.get('/search-posts', authMiddleware.required, postController.searchPosts); 
 router.get('/', authMiddleware.required, postController.getPosts);
 router.get('/:id', authMiddleware.required, postController.getPostById);
 
@@ -21,7 +22,5 @@ router.put('/:id', [
 ], postController.updatePost);
 
 router.get('/user/:userId', authMiddleware.required, postController.getUserPosts);
-
-router.get('/search', authMiddleware.required, postController.searchPosts);
 
 module.exports = router;

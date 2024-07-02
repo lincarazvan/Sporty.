@@ -23,12 +23,15 @@ const SearchPage = () => {
         });
         setUsers(usersResponse.data);
 
-        const postsResponse = await axios.get(`http://localhost:3000/api/posts/search?query=${searchTerm}`, {
+        const postsResponse = await axios.get(`http://localhost:3000/api/posts/search-posts?query=${searchTerm}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setPosts(postsResponse.data);
       } catch (error) {
-        console.error('Error searching:', error);
+        console.error('Error searching:', error.response?.data || error.message);
+  if (error.response) {
+    console.log('Error status:', error.response.status);
+    console.log('Error data:', error.response.data);}
       }
     };
 

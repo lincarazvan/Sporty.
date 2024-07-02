@@ -50,6 +50,8 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/password', passwordRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 sequelize.sync().then(() => {
   console.log('Database synced');

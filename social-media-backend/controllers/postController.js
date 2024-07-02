@@ -1,8 +1,9 @@
 const { validationResult } = require('express-validator');
-const { Post, User,Comment,Sequelize } = require('../models');
+const { Post, User, Comment , Sequelize } = require('../models');
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
+const { Op } = require('sequelize');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -18,20 +19,27 @@ const upload = multer({ storage: storage });
 exports.searchPosts = async (req, res) => {
   try {
     const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
     const posts = await Post.findAll({
       where: {
         content: {
           [Op.iLike]: `%${query}%`
         }
       },
-      include: [{ model: User, attributes: ['id', 'username', 'avatarUrl'] }],
+      include: [{ 
+        model: User, 
+        attributes: ['id', 'username', 'avatarUrl'],
+        required: false
+      }],
       order: [['createdAt', 'DESC']],
       limit: 20
     });
     res.json(posts);
   } catch (error) {
     console.error('Error searching posts:', error);
-    res.status(500).json({ message: 'Error searching posts' });
+    res.status(500).json({ message: 'Error searching posts', error: error.toString() });
   }
 };
 
