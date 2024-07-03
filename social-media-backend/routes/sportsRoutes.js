@@ -4,5 +4,6 @@ const router = express.Router();
 
 router.get('/live-scores', sportsController.getLiveScores);
 router.get('/upcoming-fixtures', sportsController.getUpcomingFixtures);
+router.get('/standings/:leagueId', sportsController.getStandings);
 
 module.exports = router;

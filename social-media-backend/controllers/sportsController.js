@@ -21,12 +21,12 @@ const fetchLiveScores = async () => {
   }
 };
 
-const fetchUpcomingFixtures = async () => {
+const fetchUpcomingFixtures = async (league = '39', next = '5') => {
   try {
     const response = await axios.get(`${API_URL}/fixtures`, {
       params: { 
-        league: '39', // Premier League ID
-        next: '5'     // Next 5 matches
+        league: league,
+        next: next
       },
       headers: {
         'x-rapidapi-host': 'v3.football.api-sports.io',
@@ -37,6 +37,43 @@ const fetchUpcomingFixtures = async () => {
   } catch (error) {
     console.error('Error fetching upcoming fixtures:', error);
     throw error;
+  }
+};
+
+const fetchStandings = async (leagueId) => {
+  try {
+    const response = await axios.get(`${API_URL}/standings`, {
+      params: { 
+        league: leagueId,
+        season: '2023' // Actualizați acest an pentru sezonul curent
+      },
+      headers: {
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+        'x-rapidapi-key': API_KEY
+      }
+    });
+    return response.data.response[0].league.standings[0];
+  } catch (error) {
+    console.error('Error fetching standings:', error);
+    throw error;
+  }
+};
+
+exports.getStandings = async (req, res) => {
+  const { leagueId } = req.params;
+  const cacheKey = `standings_${leagueId}`;
+  const cachedData = myCache.get(cacheKey);
+
+  if (cachedData) {
+    return res.json(cachedData);
+  }
+
+  try {
+    const data = await fetchStandings(leagueId);
+    myCache.set(cacheKey, data);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching standings' });
   }
 };
 
@@ -58,7 +95,8 @@ exports.getLiveScores = async (req, res) => {
 };
 
 exports.getUpcomingFixtures = async (req, res) => {
-  const cacheKey = 'upcomingFixtures';
+  const { league, next } = req.query;
+  const cacheKey = `upcomingFixtures_${league}_${next}`;
   const cachedData = myCache.get(cacheKey);
 
   if (cachedData) {
@@ -66,7 +104,7 @@ exports.getUpcomingFixtures = async (req, res) => {
   }
 
   try {
-    const data = await fetchUpcomingFixtures();
+    const data = await fetchUpcomingFixtures(league, next);
     myCache.set(cacheKey, data);
     res.json(data);
   } catch (error) {
@@ -78,8 +116,12 @@ exports.updateCache = async () => {
   try {
     const liveScores = await fetchLiveScores();
     const upcomingFixtures = await fetchUpcomingFixtures();
+    const premierLeagueStandings = await fetchStandings('39');
+    
     myCache.set('liveScores', liveScores);
     myCache.set('upcomingFixtures', upcomingFixtures);
+    myCache.set('standings_39', premierLeagueStandings);
+    
     console.log('Cache updated successfully');
   } catch (error) {
     console.error('Error updating cache:', error);
