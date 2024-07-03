@@ -17,6 +17,7 @@ const privacyRoutes = require('./routes/privacyRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const passwordRoutes = require('./routes/passwordRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const sportsRoutes = require('./routes/sportsRoutes');
 const { Server } = require('socket.io');
 const Message = require('./models/message');
 const Follow = require('./models/follow');
@@ -27,6 +28,13 @@ const io = socketIo(server, {
     origin: "http://localhost:3001",
     methods: ["GET", "POST"]
   }
+});
+const cron = require('node-cron');
+const sportsController = require('./controllers/sportsController');
+
+// Actualizare automată la fiecare 15 minute
+cron.schedule('*/15 * * * *', () => {
+  sportsController.updateCache();
 });
 
 const corsOptions = {
@@ -50,6 +58,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/password', passwordRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/sports', sportsRoutes);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

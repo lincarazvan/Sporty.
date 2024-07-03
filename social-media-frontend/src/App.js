@@ -17,6 +17,7 @@ import Register from "./pages/Register";
 import ChatPage from './components/ChatPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SearchPage from './pages/SearchPage';
+import SportsStats from './pages/SportsStats';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -99,6 +100,14 @@ const App = () => {
             element={
               <PrivateRoute>
                 <SearchPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/sports-stats"
+            element={
+              <PrivateRoute>
+                <SportsStats />
               </PrivateRoute>
             }
           />

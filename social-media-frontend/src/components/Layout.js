@@ -1,10 +1,11 @@
 import React, { useContext } from "react";
 import { Container, Grid, Paper, Box } from "@mui/material";
 import LeftSidebar from "./LeftSidebar";
-import RightSidebar from "./RightSidebar";
 import Header from "./Header";
 import AuthContext from "../context/AuthContext";
 import { useLocation } from 'react-router-dom';
+import SportsSidebar from "./SportsSidebar";
+import { Sports } from "@mui/icons-material";
 
 const Layout = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -35,10 +36,10 @@ const Layout = ({ children }) => {
             {children}{" "}
             {/* Nu mai este nevoie de Box și margin suplimentar aici */}
           </Grid>
-          {user && !location.pathname.includes("/chat") && (
+          {user && (
             <Grid item xs={12} md={3}>
               <Paper sx={{ position: "sticky", top: 60 }}>
-                <RightSidebar />
+                <SportsSidebar />
               </Paper>
             </Grid>
           )}
