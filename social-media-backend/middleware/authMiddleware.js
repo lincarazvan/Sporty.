@@ -28,7 +28,6 @@ exports.optional = async (req, res, next) => {
       const verified = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findByPk(verified.id);
     } catch (error) {
-      // Ignoră erorile de token invalid
     }
   }
   next();

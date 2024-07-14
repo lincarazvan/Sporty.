@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt'); // Asigură-te că folosești 'bcrypt' dacă ai instalat acest modul
+const bcrypt = require('bcrypt'); 
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const crypto = require('crypto');
@@ -6,7 +6,6 @@ const nodemailer = require('nodemailer');
 const { Op } = require('sequelize');
 const User = require('../models/user');
 
-// Configurare nodemailer pentru trimiterea emailurilor
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -15,7 +14,6 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Generare token de resetare parolă și trimiterea emailului
 exports.forgotPassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -32,7 +30,7 @@ exports.forgotPassword = async (req, res) => {
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    const resetPasswordExpire = Date.now() + 10 * 60 * 1000; // Tokenul expiră în 10 minute
+    const resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minute
 
     user.resetPasswordToken = resetPasswordToken;
     user.resetPasswordExpire = resetPasswordExpire;
@@ -57,7 +55,6 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// Resetarea parolei
 exports.resetPassword = async (req, res) => {
   const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 
@@ -85,7 +82,6 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// Schimbarea parolei
 exports.changePassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

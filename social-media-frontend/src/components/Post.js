@@ -147,7 +147,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
       await axios.delete(`http://localhost:3000/api/posts/${post.id}/image`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setEditContent((prevContent) => prevContent); // Trigger re-render
+      setEditContent((prevContent) => prevContent); 
       onPostUpdate({ ...post, imagePath: null });
     } catch (error) {
       console.error("Error deleting image:", error);

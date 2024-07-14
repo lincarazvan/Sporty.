@@ -41,7 +41,6 @@ const NotificationsPage = () => {
     } else if (notification.type === 'message' && notification.senderId) {
       navigate('/chat', { state: { openChat: { id: notification.senderId, username: notification.senderUsername } } });
     }
-    // Pentru alte tipuri de notificări, puteți adăuga logica corespunzătoare aici
   };
 
   return (

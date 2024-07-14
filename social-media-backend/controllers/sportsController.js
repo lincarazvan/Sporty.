@@ -3,7 +3,7 @@ const NodeCache = require('node-cache');
 
 const API_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY;
-const myCache = new NodeCache({ stdTTL: 900 }); // Cache for 15 minutes
+const myCache = new NodeCache({ stdTTL: 900 }); // Cache 15 minute
 
 const fetchLiveScores = async () => {
   try {
@@ -14,7 +14,7 @@ const fetchLiveScores = async () => {
         'x-rapidapi-key': API_KEY
       }
     });
-    return response.data.response.slice(0, 5); // Limit to 5 matches
+    return response.data.response.slice(0, 5); // Limita 5 meciuri
   } catch (error) {
     console.error('Error fetching live scores:', error);
     throw error;
@@ -45,7 +45,7 @@ const fetchStandings = async (leagueId) => {
     const response = await axios.get(`${API_URL}/standings`, {
       params: { 
         league: leagueId,
-        season: '2023' // Actualizați acest an pentru sezonul curent
+        season: '2023'
       },
       headers: {
         'x-rapidapi-host': 'v3.football.api-sports.io',

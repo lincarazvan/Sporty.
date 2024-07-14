@@ -41,7 +41,7 @@ const User = sequelize.define('User', {
   avatarUrl: {
     type: DataTypes.STRING,
     allowNull: true,
-    defaultValue: '/default-avatar.png' // O imagine implicită pentru utilizatorii fără avatar personalizat
+    defaultValue: '/default-avatar.png'
   },
 }, {
   tableName: 'Users'

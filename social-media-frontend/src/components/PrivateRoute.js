@@ -7,7 +7,6 @@ const PrivateRoute = ({ children }) => {
   const location = useLocation();
 
   if (!user) {
-    // Redirectionează către login, dar păstrează locația curentă pentru a reveni după autentificare
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

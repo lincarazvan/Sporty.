@@ -3,17 +3,17 @@ const upload = require('../config/multerConfig');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/user');
-const Post = require('../models/post'); // Adaugă importurile necesare
-const Comment = require('../models/comment'); // Adaugă importurile necesare
-const Follow = require('../models/follow'); // Adaugă importurile necesare
-const Notification = require('../models/notification'); // Adaugă importurile necesare
-const PrivacySetting = require('../models/privacySetting'); // Adaugă importurile necesare
+const Post = require('../models/post'); 
+const Comment = require('../models/comment'); 
+const Follow = require('../models/follow'); 
+const Notification = require('../models/notification'); 
+const PrivacySetting = require('../models/privacySetting'); 
 const { Op } = require('sequelize');
 
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ['id', 'username'], // Selectează doar câmpurile necesare
+      attributes: ['id', 'username'], 
     });
     res.send(users);
   } catch (error) {
@@ -148,23 +148,18 @@ exports.profile = async (req, res) => {
 exports.deleteProfile = async (req, res) => {
   const userId = req.user.id;
   try {
-    // Șterge toate postările utilizatorului
+    
     await Post.destroy({ where: { userId } });
-
-    // Șterge toate comentariile utilizatorului
+    
     await Comment.destroy({ where: { userId } });
-
-    // Șterge toate urmăririle asociate utilizatorului
+    
     await Follow.destroy({ where: { followerId: userId } });
     await Follow.destroy({ where: { followingId: userId } });
-
-    // Șterge toate notificările utilizatorului
+    
     await Notification.destroy({ where: { userId } });
-
-    // Șterge setările de confidențialitate ale utilizatorului
+    
     await PrivacySetting.destroy({ where: { userId } });
-
-    // Șterge utilizatorul
+    
     await User.destroy({ where: { id: userId } });
 
     res.send('Profile deleted');
@@ -228,7 +223,7 @@ exports.searchUsers = async (req, res) => {
           [Op.iLike]: `%${query}%`
         },
         id: {
-          [Op.ne]: req.user.id // Exclude the current user
+          [Op.ne]: req.user.id 
         }
       },
       attributes: ['id', 'username', 'avatarUrl'],

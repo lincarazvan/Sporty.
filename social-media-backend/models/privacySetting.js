@@ -9,7 +9,7 @@ const PrivacySetting = sequelize.define('PrivacySetting', {
   visibility: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: 'public' // 'public', 'friends', 'private'
+    defaultValue: 'public'
   }
 });
 

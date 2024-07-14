@@ -27,7 +27,6 @@ const LeftSidebar = () => {
   useEffect(() => {
     fetchUnreadNotificationsCount();
 
-    // Resetăm contorul când utilizatorul vizitează pagina de notificări
     if (location.pathname === '/notifications') {
       setUnreadNotifications(0);
     }

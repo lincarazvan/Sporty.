@@ -9,7 +9,7 @@ const SportsSidebar = () => {
 
   useEffect(() => {
     fetchLiveScores();
-    const interval = setInterval(fetchLiveScores, 300000); // Update every 5 minutes
+    const interval = setInterval(fetchLiveScores, 300000); // Update la 5 minute
     return () => clearInterval(interval);
   }, []);
 

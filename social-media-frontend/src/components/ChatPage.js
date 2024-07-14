@@ -11,7 +11,7 @@ import SearchUserDialog from "./SearchUserDialog";
 import { useLocation } from "react-router-dom";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
-  height: "calc(100vh - 70px)", // Ajustează înălțimea bazată pe înălțimea header-ului aplicației
+  height: "calc(100vh - 70px)",
   padding: theme.spacing(2),
   display: "flex",
   flexDirection: "column",

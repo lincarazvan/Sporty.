@@ -20,7 +20,7 @@ exports.toggleLike = async (req, res) => {
           type: 'like',
           message: `${req.user.username} a apreciat postarea ta.`,
           relatedId: postId,
-          senderId: userId,  // Folosim userId în loc de followerId sau senderId
+          senderId: userId,
           senderUsername: req.user.username
         });
         

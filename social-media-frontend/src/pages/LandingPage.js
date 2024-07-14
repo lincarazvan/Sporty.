@@ -10,7 +10,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 const HeroSection = styled(Box)(({ theme }) => ({
   backgroundColor: '#1F2937',
   color: '#F9FAF8',
-  padding: theme.spacing(20, 0, 10), // Increased top padding
+  padding: theme.spacing(20, 0, 10),
   backgroundImage: 'url(/hero-bg.jpg)',
   backgroundSize: 'cover',
   backgroundPosition: 'center',

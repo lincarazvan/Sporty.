@@ -9,7 +9,7 @@ const Standings = () => {
   const [standings, setStandings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [league, setLeague] = useState('39'); // Default to Premier League
+  const [league, setLeague] = useState('39'); // Default Premier League
 
   const fetchStandings = useCallback(async () => {
     setLoading(true);
