@@ -18,6 +18,7 @@ import ChatPage from './components/ChatPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SearchPage from './pages/SearchPage';
 import SportsStats from './pages/SportsStats';
+import AdminPanel from './pages/AdminPanel';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -108,6 +109,14 @@ const App = () => {
             element={
               <PrivateRoute>
                 <SportsStats />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute adminOnly>
+                <AdminPanel />
               </PrivateRoute>
             }
           />

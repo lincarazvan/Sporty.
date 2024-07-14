@@ -24,6 +24,8 @@ import { Link as RouterLink } from "react-router-dom";
 import axios from "axios";
 import AuthContext from "../context/AuthContext";
 import Comment from "./Comment";
+import ReportDialog from "./ReportDialog";
+import FlagIcon from '@mui/icons-material/Flag';
 
 const Post = ({ post, onPostUpdate, onPostDelete }) => {
   const { user } = useContext(AuthContext);
@@ -38,6 +40,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
   const [editContent, setEditContent] = useState(post.content);
   const [newImage, setNewImage] = useState(null);
   const [newImagePreview, setNewImagePreview] = useState(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const fetchLikes = useCallback(async () => {
     try {
@@ -147,7 +150,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
       await axios.delete(`http://localhost:3000/api/posts/${post.id}/image`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-      setEditContent((prevContent) => prevContent); 
+      setEditContent((prevContent) => prevContent);
       onPostUpdate({ ...post, imagePath: null });
     } catch (error) {
       console.error("Error deleting image:", error);
@@ -327,6 +330,9 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
             <CommentIcon />
           </IconButton>
           <Typography variant="body2">{commentCount} comments</Typography>
+          <IconButton onClick={() => setReportDialogOpen(true)}>
+            <FlagIcon />
+          </IconButton>
         </Box>
 
         {showComments && (
@@ -356,6 +362,12 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
           </Box>
         )}
       </CardContent>
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        itemId={post.id}
+        itemType="post"
+      />
     </Card>
   );
 };

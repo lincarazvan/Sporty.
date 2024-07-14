@@ -11,7 +11,7 @@ const Like = sequelize.define('Like', {
     allowNull: false,
   },
 }, {
-  tableName: 'Likes', // Asigură-te că numele tabelului este specificat corect
+  tableName: 'Likes',
   indexes: [
     {
       unique: true,

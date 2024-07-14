@@ -13,11 +13,13 @@ import {
   ListItemAvatar,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import FlagIcon from '@mui/icons-material/Flag';
 import axios from "axios";
 import AuthContext from "../context/AuthContext";
 import Post from "../components/Post";
 import FollowButton from "../components/FollowButton";
 import MessageButton from "../components/MessageButton";
+import ReportDialog from '../components/ReportDialog';
 
 const StyledModal = styled(Modal)(({ theme }) => ({
   display: "flex",
@@ -53,6 +55,7 @@ const Profile = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState([]);
   const [modalTitle, setModalTitle] = useState("");
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -116,9 +119,12 @@ const Profile = () => {
               @{profile.username}
             </Typography>
             {user && user.id !== profile.id && (
-              <Box sx={{mt: 1}}>
-              <FollowButton userId={profile.id} />
-              <MessageButton userId={profile.id} username={profile.username} />
+              <Box sx={{ mt: 1 }}>
+                <FollowButton userId={profile.id} />
+                <MessageButton userId={profile.id} username={profile.username} />
+                <Button onClick={() => setReportDialogOpen(true)} startIcon={<FlagIcon />}>
+                  Report User
+                </Button>
               </Box>
             )}
           </Box>
@@ -184,8 +190,16 @@ const Profile = () => {
           </List>
         </ModalContent>
       </StyledModal>
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        itemId={profile.id}
+        itemType="user"
+      />
+
     </>
   );
+
 };
 
 export default Profile;

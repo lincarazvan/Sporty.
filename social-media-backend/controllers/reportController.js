@@ -1,12 +1,6 @@
-const { validationResult } = require('express-validator');
-const Report = require('../models/report');
+const { Report, User, Post, Comment } = require('../models');
 
 exports.createReport = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
   const { reportedUserId, postId, commentId, reason } = req.body;
   try {
     const report = await Report.create({
@@ -16,18 +10,20 @@ exports.createReport = async (req, res) => {
       commentId,
       reason,
     });
-    res.status(201).send(report);
+    res.status(201).json(report);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error creating report:', error);
+    res.status(500).json({ message: 'Error creating report' });
   }
 };
 
 exports.getReports = async (req, res) => {
   try {
     const reports = await Report.findAll({ where: { status: 'pending' } });
-    res.send(reports);
+    res.json(reports);
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error fetching reports:', error);
+    res.status(500).json({ message: 'Error fetching reports' });
   }
 };
 
@@ -44,6 +40,7 @@ exports.updateReportStatus = async (req, res) => {
       res.status(404).send('Report not found');
     }
   } catch (error) {
+    console.error('Error updating report status:', error);
     res.status(500).send('Server Error');
   }
 };

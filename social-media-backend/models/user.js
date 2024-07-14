@@ -22,7 +22,8 @@ const User = sequelize.define('User', {
   },
   roleId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
+    defaultValue: 2
   },
   bio: {
     type: DataTypes.TEXT,
@@ -54,6 +55,7 @@ User.associate = function(models) {
   User.hasMany(models.Follow, { as: 'Following', foreignKey: 'followerId' });
   User.hasMany(models.Message, { as: 'sentMessages', foreignKey: 'senderId' });
   User.hasMany(models.Message, { as: 'receivedMessages', foreignKey: 'receiverId' });
+  User.belongsTo(models.Role, { foreignKey: 'roleId' });
 };
 
 module.exports = User;

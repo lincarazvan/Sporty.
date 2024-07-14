@@ -32,3 +32,19 @@ exports.optional = async (req, res, next) => {
   }
   next();
 };
+
+exports.isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      include: [{ model: Role }]
+    });
+    if (user && user.Role && user.Role.name === 'admin') {
+      next();
+    } else {
+      res.status(403).json({ message: 'Access denied. Admin role required.' });
+    }
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

@@ -33,7 +33,7 @@ const Followers = () => {
 
       const fetchRequests = async () => {
         try {
-          const result = await axios.get('/api/follow/requests'); // presupunem că ai o rută pentru obținerea cererilor de prietenie
+          const result = await axios.get('/api/follow/requests');
           setRequests(result.data);
         } catch (error) {
           console.error('Error fetching follow requests:', error);

@@ -108,7 +108,7 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      // Asigură-te că fiecare conversație este unică bazată pe ID
+      
       const uniqueConversations = response.data.reduce((acc, current) => {
         const x = acc.find(item => item.id === current.id);
         if (!x) {

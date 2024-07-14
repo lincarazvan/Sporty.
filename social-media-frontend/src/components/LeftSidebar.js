@@ -4,6 +4,7 @@ import { Home, Search, Notifications, Mail, Person, ExitToApp, MoreVert } from '
 import { Link, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 const LeftSidebar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -43,13 +44,13 @@ const LeftSidebar = () => {
   const menuItems = [
     { text: 'Home', icon: <Home />, link: '/home' },
     { text: 'Search', icon: <Search />, link: '/search' },
-    { 
-      text: 'Notifications', 
-      icon: 
+    {
+      text: 'Notifications',
+      icon:
         <Badge badgeContent={unreadNotifications} color="secondary">
           <Notifications />
-        </Badge>, 
-      link: '/notifications' 
+        </Badge>,
+      link: '/notifications'
     },
     { text: 'Messages', icon: <Mail />, link: '/chat' },
   ];
@@ -62,6 +63,12 @@ const LeftSidebar = () => {
           <ListItemText primary={item.text} />
         </ListItem>
       ))}
+      {user && user.roleId === 1 && (
+        <ListItem button component={Link} to="/admin">
+          <ListItemIcon><AdminPanelSettingsIcon /></ListItemIcon>
+          <ListItemText primary="Admin Panel" />
+        </ListItem>
+      )}
       <ListItem>
         <ListItemIcon>
           <Avatar src={user.avatarUrl} alt={user.username} />
@@ -77,13 +84,13 @@ const LeftSidebar = () => {
         onClose={handleClose}
       >
         <MenuItem onClick={handleClose} component={Link} to={`/profile/${user.username}`}>
-          <Person fontSize="small" style={{marginRight: '10px'}} /> View Profile
+          <Person fontSize="small" style={{ marginRight: '10px' }} /> View Profile
         </MenuItem>
         <MenuItem onClick={handleClose} component={Link} to="/edit-profile">
-          <Person fontSize="small" style={{marginRight: '10px'}} /> Edit Profile
+          <Person fontSize="small" style={{ marginRight: '10px' }} /> Edit Profile
         </MenuItem>
         <MenuItem onClick={() => { handleClose(); logout(); }}>
-          <ExitToApp fontSize="small" style={{marginRight: '10px'}} /> Log out
+          <ExitToApp fontSize="small" style={{ marginRight: '10px' }} /> Log out
         </MenuItem>
       </Menu>
     </List>

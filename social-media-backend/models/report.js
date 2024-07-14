@@ -29,4 +29,11 @@ const Report = sequelize.define('Report', {
   },
 });
 
+Report.associate = function(models) {
+  Report.belongsTo(models.User, { foreignKey: 'userId' });
+  Report.belongsTo(models.User, { as: 'ReportedUser', foreignKey: 'reportedUserId' });
+  Report.belongsTo(models.Post, { foreignKey: 'postId' });
+  Report.belongsTo(models.Comment, { foreignKey: 'commentId' });
+};
+
 module.exports = Report;

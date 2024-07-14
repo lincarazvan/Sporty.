@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await axios.post('http://localhost:3000/api/users/login', { email, password });
-      setUser(response.data.user);
+      setUser({...response.data.user, roleId: response.data.user.roleId});
       localStorage.setItem('user', JSON.stringify(response.data.user));
       localStorage.setItem('token', response.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
