@@ -17,18 +17,17 @@ axios.interceptors.request.use(
   }
 );
 
-const FollowButton = ({ userId }) => {
+const FollowButton = ({ userId, onFollowChange }) => {
   const { user } = useContext(AuthContext);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
-
 
   const checkFollowStatus = useCallback(async () => {
     try {
       const response = await axios.get(`/follow/following/${user.id}`);
       setIsFollowing(response.data.some(followedUser => followedUser.id === userId));
     } catch (error) {
-      console.error('Error checking follow status:', error.response ? error.response.data : error.message);
+      console.error('Error checking follow status:', error);
     }
   }, [user.id, userId]);
   
@@ -41,8 +40,11 @@ const FollowButton = ({ userId }) => {
         await axios.post('/follow', { followingId: userId });
       }
       setIsFollowing(!isFollowing);
+      if (onFollowChange) {
+        onFollowChange(!isFollowing);
+      }
     } catch (error) {
-      console.error('Error following/unfollowing user:', error.response ? error.response.data : error.message);
+      console.error('Error following/unfollowing user:', error);
     }
     setLoading(false);
   };

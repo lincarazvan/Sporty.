@@ -56,6 +56,7 @@ const Profile = () => {
   const [modalContent, setModalContent] = useState([]);
   const [modalTitle, setModalTitle] = useState("");
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -72,6 +73,7 @@ const Profile = () => {
           `http://localhost:3000/api/follow/followers/${profileRes.data.id}`
         );
         setFollowers(followersRes.data);
+        setFollowerCount(followersRes.data.length);
         const followingRes = await axios.get(
           `http://localhost:3000/api/follow/following/${profileRes.data.id}`
         );
@@ -82,6 +84,10 @@ const Profile = () => {
     };
     fetchProfileData();
   }, [username]);
+
+  const handleFollowChange = (isFollowing) => { 
+    setFollowerCount(prevCount => isFollowing ? prevCount + 1 : prevCount - 1);
+  };
 
   const handleOpenModal = (content, title) => {
     if (title !== "Posts") {
@@ -120,7 +126,7 @@ const Profile = () => {
             </Typography>
             {user && user.id !== profile.id && (
               <Box sx={{ mt: 1 }}>
-                <FollowButton userId={profile.id} />
+                <FollowButton userId={profile.id} onFollowChange={handleFollowChange}/>
                 <MessageButton userId={profile.id} username={profile.username} />
                 <Button onClick={() => setReportDialogOpen(true)} startIcon={<FlagIcon />}>
                   Report User
@@ -140,7 +146,7 @@ const Profile = () => {
           </StyledButton>
           <Button onClick={() => handleOpenModal(followers, "Followers")}>
             <Typography variant="body2">
-              <strong>{followers.length}</strong> followers
+              <strong>{followerCount}</strong> followers
             </Typography>
           </Button>
           <Button onClick={() => handleOpenModal(following, "Following")}>
