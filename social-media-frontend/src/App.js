@@ -19,6 +19,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import SearchPage from './pages/SearchPage';
 import SportsStats from './pages/SportsStats';
 import AdminPanel from './pages/AdminPanel';
+import SinglePostPage from './pages/SinglePostPage';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -117,6 +118,14 @@ const App = () => {
             element={
               <PrivateRoute adminOnly>
                 <AdminPanel />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/post/:postId"
+            element={
+              <PrivateRoute>
+                <SinglePostPage />
               </PrivateRoute>
             }
           />

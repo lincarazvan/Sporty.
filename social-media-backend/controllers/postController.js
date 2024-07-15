@@ -119,11 +119,21 @@ exports.getPosts = async (req, res) => {
 
 exports.getPostById = async (req, res) => {
   try {
-    const post = await Post.findByPk(req.params.id);
-    if (!post) return res.status(404).send('Post not found');
-    res.send(post);
+    const post = await Post.findByPk(req.params.id, {
+      include: [{ 
+        model: User, 
+        attributes: ['id', 'username', 'avatarUrl'] 
+      }],
+    });
+    
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json(post);
   } catch (error) {
-    res.status(400).send(error);
+    console.error('Error fetching post:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

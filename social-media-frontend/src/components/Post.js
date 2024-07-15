@@ -20,7 +20,7 @@ import {
   MoreVert,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import AuthContext from "../context/AuthContext";
 import Comment from "./Comment";
@@ -29,6 +29,7 @@ import FlagIcon from '@mui/icons-material/Flag';
 
 const Post = ({ post, onPostUpdate, onPostDelete }) => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [comments, setComments] = useState([]);
@@ -163,6 +164,13 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
     setNewImagePreview(URL.createObjectURL(file));
   };
 
+  const handlePostClick = (e) => {
+    if (e.target.closest('button, a')) {
+      return;
+    }
+    navigate(`/post/${post.id}`);
+  };
+
   const renderContent = (content) => {
     return content.split(" ").map((word, index) => {
       if (word.startsWith("#")) {
@@ -172,6 +180,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
             component={RouterLink}
             to={`/hashtag/${word.slice(1)}`}
             color="primary"
+            onClick={(e) => e.stopPropagation()}
           >
             {word}{" "}
           </Link>
@@ -182,7 +191,16 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card
+      sx={{
+        mb: 3,
+        cursor: 'pointer',
+        '&:hover': {
+          boxShadow: 6,
+        },
+      }}
+      onClick={handlePostClick}
+    >
       <CardContent>
         <Box
           sx={{
@@ -194,27 +212,39 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
         >
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Avatar
-              src={
-                post.User?.avatarUrl
-                  ? `http://localhost:3000${post.User.avatarUrl}`
-                  : undefined
-              }
-              alt={post.User?.username || "User"}
+              src={post.User && post.User.avatarUrl ? `http://localhost:3000${post.User.avatarUrl}` : undefined}
+              alt={post.User && post.User.username ? post.User.username : "User"}
               sx={{ mr: 2 }}
             >
-              {post.User?.username?.[0] || "?"}
+              {post.User && post.User.username ? post.User.username[0] : "?"}
             </Avatar>
             <Typography
               variant="h6"
               component={RouterLink}
-              to={`/profile/${post.User.username}`}
+              to={`/profile/${post.User?.username || ''}`}
+              onClick={(e) => e.stopPropagation()}
+              sx={{
+                textDecoration: "none",
+                color: "inherit",
+                transition: "color 0.3s, text-decoration 0.3s",
+                '&:hover': {
+                  color: (theme) => theme.palette.primary.main,
+                  textDecoration: "underline",
+                },
+                cursor: "pointer",
+                padding: "4px 8px",
+                borderRadius: "4px",
+                '&:hover': {
+                  backgroundColor: (theme) => theme.palette.action.hover,
+                },
+              }}
             >
               {post.User?.username || "Unknown User"}
             </Typography>
           </Box>
           {user && user.id === post.userId && (
             <>
-              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+              <IconButton onClick={(e) => { e.stopPropagation(); setAnchorEl(e.currentTarget); }}>
                 <MoreVert />
               </IconButton>
               <Menu
@@ -223,20 +253,21 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
                 onClose={() => setAnchorEl(null)}
               >
                 <MenuItem
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setEditMode(true);
                     setAnchorEl(null);
                   }}
                 >
                   Edit Post
                 </MenuItem>
-                <MenuItem onClick={handleDeletePost}>Delete Post</MenuItem>
+                <MenuItem onClick={(e) => { e.stopPropagation(); handleDeletePost(); }}>Delete Post</MenuItem>
               </Menu>
             </>
           )}
         </Box>
         {editMode ? (
-          <Box>
+          <Box onClick={(e) => e.stopPropagation()}>
             <TextField
               fullWidth
               multiline
@@ -297,23 +328,21 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
         ) : (
           <>
             <Typography variant="body1" gutterBottom>
-              {renderContent(post.content)}
+              {post.content}
             </Typography>
             {post.imagePath && (
-              <Box position="relative">
-                <CardMedia
-                  component="img"
-                  image={`http://localhost:3000/${post.imagePath}`}
-                  alt="Post image"
-                  sx={{
-                    borderRadius: 1,
-                    mt: 2,
-                    mb: 2,
-                    maxHeight: 300,
-                    objectFit: "contain",
-                  }}
-                />
-              </Box>
+              <CardMedia
+                component="img"
+                image={`http://localhost:3000/${post.imagePath}`}
+                alt="Post image"
+                sx={{
+                  borderRadius: 1,
+                  mt: 2,
+                  mb: 2,
+                  maxHeight: 300,
+                  objectFit: "contain",
+                }}
+              />
             )}
           </>
         )}
@@ -322,21 +351,21 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
         </Typography>
 
         <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-          <IconButton onClick={handleLike}>
+          <IconButton onClick={(e) => { e.stopPropagation(); handleLike(); }}>
             {liked ? <Favorite color="error" /> : <FavoriteBorder />}
           </IconButton>
           <Typography variant="body2">{likeCount} likes</Typography>
-          <IconButton onClick={() => setShowComments(!showComments)}>
+          <IconButton onClick={(e) => { e.stopPropagation(); setShowComments(!showComments); }}>
             <CommentIcon />
           </IconButton>
           <Typography variant="body2">{commentCount} comments</Typography>
-          <IconButton onClick={() => setReportDialogOpen(true)}>
+          <IconButton onClick={(e) => { e.stopPropagation(); setReportDialogOpen(true); }}>
             <FlagIcon />
           </IconButton>
         </Box>
 
         {showComments && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2 }} onClick={(e) => e.stopPropagation()}>
             <TextField
               fullWidth
               variant="outlined"
