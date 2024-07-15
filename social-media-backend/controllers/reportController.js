@@ -19,11 +19,19 @@ exports.createReport = async (req, res) => {
 
 exports.getReports = async (req, res) => {
   try {
-    const reports = await Report.findAll({ where: { status: 'pending' } });
+    const reports = await Report.findAll({
+      where: { status: 'pending' },
+      include: [
+        { model: User, as: 'Reporter', attributes: ['id', 'username'] },
+        { model: User, as: 'ReportedUser', attributes: ['id', 'username'] },
+        { model: Post, attributes: ['id', 'content'] }
+      ]
+    });
+    console.log("Reports fetched:", JSON.stringify(reports, null, 2));
     res.json(reports);
   } catch (error) {
     console.error('Error fetching reports:', error);
-    res.status(500).json({ message: 'Error fetching reports' });
+    res.status(500).json({ message: 'Error fetching reports', error: error.message });
   }
 };
 

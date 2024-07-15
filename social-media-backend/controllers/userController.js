@@ -235,3 +235,42 @@ exports.searchUsers = async (req, res) => {
     res.status(500).json({ message: 'Error searching users' });
   }
 };
+
+exports.deleteUserByAdmin = async (req, res) => {
+  const targetUserId = req.params.id;
+  const adminId = req.user.id;
+  const isAdmin = req.user.roleId === 1;
+
+  if (!isAdmin) {
+    return res.status(403).send('Unauthorized. Admin access required.');
+  }
+
+  try {
+    const targetUser = await User.findByPk(targetUserId);
+    if (!targetUser) {
+      return res.status(404).send('User not found');
+    }
+
+    if (targetUserId === adminId) {
+      return res.status(400).send('Cannot delete your own admin account');
+    }
+
+    await Post.destroy({ where: { userId: targetUserId } });
+
+    await Comment.destroy({ where: { userId: targetUserId } });
+
+    await Follow.destroy({ where: { followerId: targetUserId } });
+    await Follow.destroy({ where: { followingId: targetUserId } });
+
+    await Notification.destroy({ where: { userId: targetUserId } });
+
+    await PrivacySetting.destroy({ where: { userId: targetUserId } });
+
+    await User.destroy({ where: { id: targetUserId } });
+
+    res.send('User deleted successfully by admin');
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).send('Server Error');
+  }
+};

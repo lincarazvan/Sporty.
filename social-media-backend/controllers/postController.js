@@ -141,25 +141,41 @@ exports.getUserPosts = async (req, res) => {
 };
 
 exports.deletePost = async (req, res) => {
-    const postId = req.params.id;
-    const userId = req.user.id;
-    try {
-      const post = await Post.findByPk(postId);
-      if (!post) return res.status(404).send('Post not found');
-      
-      // Verifică dacă utilizatorul este proprietarul postării
-      if (post.userId !== userId) return res.status(403).send('Unauthorized');
-  
-      // Șterge comentariile asociate
-      await Comment.destroy({ where: { postId } });
-  
-      await post.destroy();
-      res.send('Post deleted');
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      res.status(500).send('Server Error');
+  const postId = req.params.id;
+  const userId = req.user.id;
+  const isAdmin = req.user.roleId === 1; 
+
+  console.log("Delete post request received:");
+  console.log("Post ID:", postId);
+  console.log("User ID:", userId);
+  console.log("Is Admin:", isAdmin);
+
+  try {
+    const post = await Post.findByPk(postId);
+    if (!post) {
+      console.log("Post not found");
+      return res.status(404).json({ message: 'Post not found' });
     }
-  };
+    
+    console.log("Post found:", post.id);
+    console.log("Post owner ID:", post.userId);
+
+    if (post.userId !== userId && !isAdmin) {
+      console.log("Unauthorized delete attempt");
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    await Comment.destroy({ where: { postId } });
+    console.log("Comments deleted");
+
+    await post.destroy();
+    console.log("Post deleted successfully");
+    return res.status(200).json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    return res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
 
   exports.updatePost = [upload.single('image'), async (req, res) => {
     try {

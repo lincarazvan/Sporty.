@@ -56,6 +56,8 @@ User.associate = function(models) {
   User.hasMany(models.Message, { as: 'sentMessages', foreignKey: 'senderId' });
   User.hasMany(models.Message, { as: 'receivedMessages', foreignKey: 'receiverId' });
   User.belongsTo(models.Role, { foreignKey: 'roleId' });
+  User.hasMany(models.Report, { as: 'ReportsCreated', foreignKey: 'userId' });
+  User.hasMany(models.Report, { as: 'ReportsReceived', foreignKey: 'reportedUserId' });
 };
 
 module.exports = User;
