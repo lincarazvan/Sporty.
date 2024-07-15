@@ -1,4 +1,4 @@
-const { Comment, User, Post, Notification } = require('../models');
+const { Comment, User, CommentLike, Post, Notification } = require('../models');
 
 exports.createComment = async (req, res) => {
   try {
@@ -62,13 +62,30 @@ exports.getComments = async (req, res) => {
 exports.likeComment = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+
     const comment = await Comment.findByPk(id);
     if (!comment) {
       return res.status(404).json({ error: 'Comment not found' });
     }
-    comment.likes += 1;
+
+    const [like, created] = await CommentLike.findOrCreate({
+      where: { userId, commentId: id }
+    });
+
+    if (!created) {
+      await like.destroy();
+      comment.likes = Math.max(0, comment.likes - 1);
+    } else {
+      comment.likes += 1;
+    }
+
     await comment.save();
-    res.status(200).json({ likes: comment.likes });
+
+    res.status(200).json({ 
+      likes: comment.likes, 
+      liked: created
+    });
   } catch (error) {
     console.error('Error liking comment:', error);
     res.status(500).json({ error: 'Internal server error' });

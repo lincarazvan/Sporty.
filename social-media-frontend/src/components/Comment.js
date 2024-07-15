@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -30,6 +30,8 @@ const Comment = ({
   const [replyMode, setReplyMode] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [likes, setLikes] = useState(comment.likes);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
 
   const handleEditComment = async () => {
     try {
@@ -116,7 +118,9 @@ const Comment = ({
     }
   };
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
+    if (isLiking) return;
+    setIsLiking(true);
     try {
       const response = await axios.post(
         `http://localhost:3000/api/comments/${comment.id}/like`,
@@ -126,10 +130,13 @@ const Comment = ({
         }
       );
       setLikes(response.data.likes);
+      setIsLiked(response.data.liked);
     } catch (error) {
       console.error("Error liking comment:", error);
+    } finally {
+      setIsLiking(false);
     }
-  };
+  }, [comment.id, isLiking]);
 
   return (
     <Box sx={{ mt: 2, ml: isReply ? 4 : 0 }}>
@@ -143,9 +150,9 @@ const Comment = ({
         </Avatar>
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography 
-              variant="subtitle2" 
-              component={RouterLink} 
+            <Typography
+              variant="subtitle2"
+              component={RouterLink}
               to={`/profile/${comment.User.username}`}
               sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { textDecoration: 'underline' } }}
             >
@@ -174,7 +181,12 @@ const Comment = ({
             <Typography variant="body2">{comment.content}</Typography>
           )}
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-            <IconButton size="small" onClick={handleLike}>
+            <IconButton
+              size="small"
+              onClick={handleLike}
+              disabled={isLiking}
+              color={isLiked ? "primary" : "default"}
+            >
               <ThumbUp fontSize="small" />
             </IconButton>
             <Typography variant="caption" sx={{ ml: 0.5 }}>{likes}</Typography>
