@@ -114,7 +114,7 @@ exports.sendMessage = async (req, res) => {
       type: 'message',
       message: `Ai primit un mesaj nou de la ${req.user.username}.`,
       relatedId: newMessage.id,
-      senderId: userId,
+      senderId: senderId, 
       senderUsername: req.user.username
     });
 

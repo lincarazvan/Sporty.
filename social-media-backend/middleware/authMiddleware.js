@@ -10,12 +10,21 @@ exports.required = async function(req, res, next) {
 
   try {
     const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findByPk(verified.id);
-    if (!req.user) {
+    const user = await User.findByPk(verified.id, {
+      attributes: ['id', 'username', 'email', 'roleId'],
+      include: [{ model: Role, attributes: ['name'] }]
+    });
+    
+    if (!user) {
+      console.log('User not found for token:', token);
       return res.status(401).send('Access Denied: User not found');
     }
+    
+    req.user = user.toJSON();
+    console.log('Authenticated user:', req.user);
     next();
   } catch (error) {
+    console.error('Token verification failed:', error);
     res.status(401).send('Invalid Token');
   }
 };
