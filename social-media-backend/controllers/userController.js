@@ -8,7 +8,7 @@ const { Op } = require('sequelize');
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ['id', 'username'], 
+      attributes: ['id', 'username'],
     });
     res.send(users);
   } catch (error) {
@@ -19,18 +19,18 @@ exports.getUsers = async (req, res) => {
 exports.getUserProfile = async (req, res) => {
   try {
     console.log('Fetching profile for username:', req.params.username);
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       where: { username: req.params.username },
       attributes: ['id', 'username', 'email', 'bio', 'avatarUrl']
     });
-    
+
     if (!user) {
       console.log('User not found');
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     const userProfile = user.toJSON();
-    
+
     console.log('User found:', userProfile);
     res.json(userProfile);
   } catch (error) {
@@ -68,12 +68,12 @@ exports.register = async (req, res) => {
     });
 
     console.log('User saved:', user);
-    
+
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    
-    return res.status(201).json({ 
+
+    return res.status(201).json({
       user: { id: user.id, username: user.username, email: user.email },
-      token 
+      token
     });
   } catch (err) {
     console.error('Registration error:', err);
@@ -107,9 +107,9 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     console.log('Login successful for user:', user.username);
-    res.json({ 
-      user: { id: user.id, username: user.username, email: user.email, roleId: user.roleId }, 
-      token 
+    res.json({
+      user: { id: user.id, username: user.username, email: user.email, roleId: user.roleId, isAdmin: user.roleId === 1 },
+      token
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -120,7 +120,7 @@ exports.login = async (req, res) => {
 exports.getCurrentUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'username', 'email', 'bio', 'avatarUrl']
+      attributes: ['id', 'username', 'email', 'bio', 'avatarUrl', 'roleId']
     });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -143,18 +143,18 @@ exports.profile = async (req, res) => {
 exports.deleteProfile = async (req, res) => {
   const userId = req.user.id;
   try {
-    
+
     await Post.destroy({ where: { userId } });
-    
+
     await Comment.destroy({ where: { userId } });
-    
+
     await Follow.destroy({ where: { followerId: userId } });
     await Follow.destroy({ where: { followingId: userId } });
-    
+
     await Notification.destroy({ where: { userId } });
-    
+
     await PrivacySetting.destroy({ where: { userId } });
-    
+
     await User.destroy({ where: { id: userId } });
 
     res.send('Profile deleted');
@@ -218,7 +218,7 @@ exports.searchUsers = async (req, res) => {
           [Op.iLike]: `%${query}%`
         },
         id: {
-          [Op.ne]: req.user.id 
+          [Op.ne]: req.user.id
         }
       },
       attributes: ['id', 'username', 'avatarUrl'],
@@ -260,13 +260,13 @@ exports.deleteUserByAdmin = async (req, res) => {
 
     await PrivacySetting.destroy({ where: { userId: targetUserId } });
 
-    await Report.destroy({ 
-      where: { 
+    await Report.destroy({
+      where: {
         [Op.or]: [
           { userId: targetUserId },
           { reportedUserId: targetUserId }
         ]
-      } 
+      }
     });
 
     await User.destroy({ where: { id: targetUserId } });

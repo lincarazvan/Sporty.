@@ -63,7 +63,7 @@ const LeftSidebar = () => {
           <ListItemText primary={item.text} />
         </ListItem>
       ))}
-      {user && user.roleId === 1 && (
+      {user && user.isAdmin && (
         <ListItem button component={Link} to="/admin">
           <ListItemIcon><AdminPanelSettingsIcon /></ListItemIcon>
           <ListItemText primary="Admin Panel" />

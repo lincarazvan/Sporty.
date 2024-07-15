@@ -19,8 +19,12 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         const response = await axios.get('http://localhost:3000/api/users/me');
-        setUser(response.data);
-        localStorage.setItem('user', JSON.stringify(response.data));
+        const userData = {
+          ...response.data,
+          isAdmin: response.data.roleId === 1 // Presupunem că roleId 1 este pentru admin
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
       }
     } catch (error) {
       console.error('Authentication check failed:', error);
@@ -41,8 +45,12 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await axios.post('http://localhost:3000/api/users/login', { email, password });
-      setUser({...response.data.user, roleId: response.data.user.roleId});
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      const userData = {
+        ...response.data.user,
+        isAdmin: response.data.user.roleId === 1
+      };
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('token', response.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       navigate('/home');
