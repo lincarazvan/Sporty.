@@ -2,12 +2,7 @@ const bcrypt = require('bcryptjs');
 const upload = require('../config/multerConfig');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-const User = require('../models/user');
-const Post = require('../models/post'); 
-const Comment = require('../models/comment'); 
-const Follow = require('../models/follow'); 
-const Notification = require('../models/notification'); 
-const PrivacySetting = require('../models/privacySetting'); 
+const { User, Post, Comment, Report, Follow, Notification, PrivacySetting } = require('../models');
 const { Op } = require('sequelize');
 
 exports.getUsers = async (req, res) => {
@@ -254,7 +249,6 @@ exports.deleteUserByAdmin = async (req, res) => {
     if (targetUserId === adminId) {
       return res.status(400).send('Cannot delete your own admin account');
     }
-
     await Post.destroy({ where: { userId: targetUserId } });
 
     await Comment.destroy({ where: { userId: targetUserId } });
@@ -266,9 +260,18 @@ exports.deleteUserByAdmin = async (req, res) => {
 
     await PrivacySetting.destroy({ where: { userId: targetUserId } });
 
+    await Report.destroy({ 
+      where: { 
+        [Op.or]: [
+          { userId: targetUserId },
+          { reportedUserId: targetUserId }
+        ]
+      } 
+    });
+
     await User.destroy({ where: { id: targetUserId } });
 
-    res.send('User deleted successfully by admin');
+    res.send('User and all associated data deleted successfully by admin');
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).send('Server Error');

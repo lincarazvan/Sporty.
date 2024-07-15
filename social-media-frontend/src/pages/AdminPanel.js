@@ -53,17 +53,20 @@ const AdminPanel = () => {
                 });
             } else if (itemToDelete.type === 'user') {
                 console.log("Attempting to delete user:", itemToDelete.id);
-                response = await axios.delete(`http://localhost:3000/api/users/${itemToDelete.id}`, {
+                response = await axios.delete(`http://localhost:3000/api/users/admin/${itemToDelete.id}`, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
                 });
             } else {
                 throw new Error(`Unknown item type: ${itemToDelete.type}`);
             }
             console.log("Delete response:", response);
+
+            await handleReportAction(itemToDelete.reportId, 'resolved');
+
             setDeleteDialogOpen(false);
             setItemToDelete(null);
             fetchReports();
-            alert(`${itemToDelete.type} with ID ${itemToDelete.id} deleted successfully`);
+            alert(`${itemToDelete.type} with ID ${itemToDelete.id} deleted successfully and report resolved`);
         } catch (error) {
             console.error('Error deleting item:', error);
             alert(`Error deleting ${itemToDelete.type}: ${error.response?.data?.message || error.message}`);
@@ -99,8 +102,8 @@ const AdminPanel = () => {
                                     <Button color="error" onClick={() => {
                                         const itemType = report.Post ? 'post' : (report.ReportedUser ? 'user' : 'unknown');
                                         const itemId = report.Post ? report.Post.id : (report.ReportedUser ? report.ReportedUser.id : null);
-                                        console.log("Setting item to delete:", { type: itemType, id: itemId });
-                                        setItemToDelete({ type: itemType, id: itemId });
+                                        console.log("Setting item to delete:", { type: itemType, id: itemId, reportId: report.id });
+                                        setItemToDelete({ type: itemType, id: itemId, reportId: report.id });
                                         setDeleteDialogOpen(true);
                                     }}>
                                         Delete {report.Post ? 'post' : (report.ReportedUser ? 'user' : 'item')}

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user');
+const { User, Role } = require('../models');
 
 exports.required = async function(req, res, next) {
   const authHeader = req.header('Authorization');
@@ -36,7 +36,7 @@ exports.optional = async (req, res, next) => {
 exports.isAdmin = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      include: [{ model: Role }]
+      include: [{ model: Role, attributes: ['name'] }]
     });
     if (user && user.Role && user.Role.name === 'admin') {
       next();

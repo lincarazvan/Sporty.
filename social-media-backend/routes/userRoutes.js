@@ -33,6 +33,6 @@ router.get('/profile/:username', authMiddleware.required, userController.getUser
 
 router.get('/search', authMiddleware.required, userController.searchUsers);
 
-router.delete('/admin/delete/:id', authMiddleware.required, authMiddleware.isAdmin, userController.deleteUserByAdmin);
+router.delete('/admin/:id', authMiddleware.required, authMiddleware.isAdmin, userController.deleteUserByAdmin);
 
 module.exports = router;

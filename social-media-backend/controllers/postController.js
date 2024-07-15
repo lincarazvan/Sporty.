@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const { Post, User, Comment , Sequelize } = require('../models');
+const { Post, User, Comment, Report , Sequelize } = require('../models');
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
@@ -143,37 +143,23 @@ exports.getUserPosts = async (req, res) => {
 exports.deletePost = async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.id;
-  const isAdmin = req.user.roleId === 1; 
-
-  console.log("Delete post request received:");
-  console.log("Post ID:", postId);
-  console.log("User ID:", userId);
-  console.log("Is Admin:", isAdmin);
+  const isAdmin = req.user.roleId === 1;
 
   try {
     const post = await Post.findByPk(postId);
-    if (!post) {
-      console.log("Post not found");
-      return res.status(404).json({ message: 'Post not found' });
-    }
+    if (!post) return res.status(404).json({ message: 'Post not found' });
     
-    console.log("Post found:", post.id);
-    console.log("Post owner ID:", post.userId);
-
-    if (post.userId !== userId && !isAdmin) {
-      console.log("Unauthorized delete attempt");
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
+    if (post.userId !== userId && !isAdmin) return res.status(403).json({ message: 'Unauthorized' });
 
     await Comment.destroy({ where: { postId } });
-    console.log("Comments deleted");
+
+    await Report.destroy({ where: { postId } });
 
     await post.destroy();
-    console.log("Post deleted successfully");
-    return res.status(200).json({ message: 'Post deleted successfully' });
+    res.json({ message: 'Post and associated reports deleted successfully' });
   } catch (error) {
     console.error('Error deleting post:', error);
-    return res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 

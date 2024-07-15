@@ -41,9 +41,14 @@ exports.updateReportStatus = async (req, res) => {
   try {
     const report = await Report.findOne({ where: { id: reportId } });
     if (report) {
-      report.status = status;
-      await report.save();
-      res.send(report);
+      if (status === 'resolved') {
+        await report.destroy();
+        res.json({ message: 'Report resolved and deleted' });
+      } else {
+        report.status = status;
+        await report.save();
+        res.json(report);
+      }
     } else {
       res.status(404).send('Report not found');
     }
