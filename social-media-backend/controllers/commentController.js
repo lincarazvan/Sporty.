@@ -23,7 +23,7 @@ exports.createComment = async (req, res) => {
         type: 'comment',
         message: `${req.user.username} a comentat la postarea ta.`,
         relatedId: postId,
-        senderId: followerId,
+        senderId: userId,
         senderUsername: req.user.username
       });
       

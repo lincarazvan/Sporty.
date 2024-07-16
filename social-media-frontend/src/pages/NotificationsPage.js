@@ -40,6 +40,8 @@ const NotificationsPage = () => {
       navigate(`/profile/${notification.senderUsername}`);
     } else if (notification.type === 'message' && notification.senderId) {
       navigate('/chat', { state: { openChat: { id: notification.senderId, username: notification.senderUsername } } });
+    } else if ((notification.type === 'like' || notification.type === 'comment') && notification.relatedId) {
+      navigate(`/post/${notification.relatedId}`);
     }
   };
 

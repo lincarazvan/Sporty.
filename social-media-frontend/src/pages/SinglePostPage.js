@@ -35,7 +35,7 @@ const SinglePostPage = () => {
   };
 
   const handlePostDelete = () => {
-    navigate('/home'); // sau orice altă pagină doriți după ștergere
+    navigate('/home');
   };
 
   if (loading) return <CircularProgress />;
