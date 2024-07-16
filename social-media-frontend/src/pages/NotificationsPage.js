@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Typography, List, ListItem, ListItemText, Divider, Button, Box } from '@mui/material';
+import { Typography, List, ListItem, ListItemText, Divider, Button, Box, Avatar, ListItemAvatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
@@ -36,12 +36,26 @@ const NotificationsPage = () => {
   };
 
   const handleNotificationClick = (notification) => {
-    if (notification.type === 'follow' && notification.senderUsername) {
-      navigate(`/profile/${notification.senderUsername}`);
-    } else if (notification.type === 'message' && notification.senderId) {
-      navigate('/chat', { state: { openChat: { id: notification.senderId, username: notification.senderUsername } } });
-    } else if ((notification.type === 'like' || notification.type === 'comment') && notification.relatedId) {
-      navigate(`/post/${notification.relatedId}`);
+    switch(notification.type) {
+      case 'follow':
+        if (notification.senderUsername) {
+          navigate(`/profile/${notification.senderUsername}`);
+        }
+        break;
+      case 'message':
+        if (notification.senderId) {
+          navigate('/chat', { state: { openChat: { id: notification.senderId, username: notification.senderUsername } } });
+        }
+        break;
+      case 'like':
+      case 'comment':
+      case 'mention':
+        if (notification.relatedId) {
+          navigate(`/post/${notification.relatedId}`);
+        }
+        break;
+      default:
+        console.log('Unknown notification type');
     }
   };
 
@@ -82,6 +96,11 @@ const NotificationsPage = () => {
                 onClick={() => handleNotificationClick(notification)}
                 alignItems="flex-start"
               >
+                <ListItemAvatar>
+                  <Avatar src={notification.senderAvatarUrl} alt={notification.senderUsername}>
+                    {notification.senderUsername ? notification.senderUsername[0] : '?'}
+                  </Avatar>
+                </ListItemAvatar>
                 <ListItemText
                   primary={notification.message}
                   secondary={new Date(notification.createdAt).toLocaleString()}
