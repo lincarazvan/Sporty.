@@ -4,11 +4,13 @@ import {
     Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPanel = () => {
     const [reports, setReports] = useState([]);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchReports();
@@ -73,6 +75,14 @@ const AdminPanel = () => {
         }
     };
 
+    const navigateToPost = (postId) => {
+        navigate(`/post/${postId}`);
+    };
+
+    const navigateToProfile = (username) => {
+        navigate(`/profile/${username}`);
+    };
+
     return (
         <Paper sx={{ p: 2 }}>
             <Typography variant="h4" gutterBottom>Admin Panel</Typography>
@@ -81,7 +91,6 @@ const AdminPanel = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Reported Item</TableCell>
-                            <TableCell>Type</TableCell>
                             <TableCell>Reason</TableCell>
                             <TableCell>Reporter</TableCell>
                             <TableCell>Action</TableCell>
@@ -91,18 +100,34 @@ const AdminPanel = () => {
                         {reports.map((report) => (
                             <TableRow key={report.id}>
                                 <TableCell>
-                                    {report.Post ? `Post ${report.Post.id}` : (report.ReportedUser ? `User ${report.ReportedUser.id}` : 'Unknown')}
+                                    {report.Post ? (
+                                        <Button onClick={() => navigateToPost(report.Post.id)}>
+                                            Post {report.Post.id}
+                                        </Button>
+                                    ) : report.ReportedUser ? (
+                                        <Button onClick={() => navigateToProfile(report.ReportedUser.username)}>
+                                            User {report.ReportedUser.username}
+                                        </Button>
+                                    ) : (
+                                        'Unknown'
+                                    )}
                                 </TableCell>
-                                <TableCell>{report.Post ? 'post' : (report.ReportedUser ? 'user' : 'unknown')}</TableCell>
                                 <TableCell>{report.reason || 'Unknown'}</TableCell>
-                                <TableCell>{report.Reporter ? report.Reporter.username : 'Unknown'}</TableCell>
+                                <TableCell>
+                                    {report.Reporter ? (
+                                        <Button onClick={() => navigateToProfile(report.Reporter.username)}>
+                                            {report.Reporter.username}
+                                        </Button>
+                                    ) : (
+                                        'Unknown'
+                                    )}
+                                </TableCell>
                                 <TableCell>
                                     <Button onClick={() => handleReportAction(report.id, 'resolved')}>Resolve</Button>
                                     <Button onClick={() => handleReportAction(report.id, 'dismissed')}>Dismiss</Button>
                                     <Button color="error" onClick={() => {
                                         const itemType = report.Post ? 'post' : (report.ReportedUser ? 'user' : 'unknown');
                                         const itemId = report.Post ? report.Post.id : (report.ReportedUser ? report.ReportedUser.id : null);
-                                        console.log("Setting item to delete:", { type: itemType, id: itemId, reportId: report.id });
                                         setItemToDelete({ type: itemType, id: itemId, reportId: report.id });
                                         setDeleteDialogOpen(true);
                                     }}>
