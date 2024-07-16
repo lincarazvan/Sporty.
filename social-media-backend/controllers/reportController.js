@@ -1,4 +1,4 @@
-const { Report, User, Post, Comment } = require('../models');
+const { Report, User, Post} = require('../models');
 
 exports.createReport = async (req, res) => {
   const { reportedUserId, postId, commentId, reason } = req.body;
