@@ -1,8 +1,8 @@
-import React, { useState, useContext } from 'react';
-import { Container, TextField, Button, Typography, Box, Paper, Link } from '@mui/material';
+// În src/pages/ForgotPassword.js
+import React, { useState } from 'react';
+import { Container, TextField, Button, Typography, Box, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import AuthContext from '../context/AuthContext';
-import { Link as RouterLink } from 'react-router-dom';
+import axios from 'axios';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   marginTop: theme.spacing(8),
@@ -13,23 +13,25 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: 'rgba(255, 255, 255, 0.8)',
 }));
 
-const Login = () => {
-  const { login } = useContext(AuthContext);
+const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setMessage('');
     setError('');
+
     try {
-      await login(email, password);
+      const response = await axios.post('http://localhost:3000/api/password/forgot', { email });
+      setMessage(response.data.message);
     } catch (error) {
+      setError(error.response?.data?.message || 'An error occurred. Please try again.');
+    } finally {
       setLoading(false);
-      console.error('Login error:', error);
-      setError('Login failed. Please try again.');
     }
   };
 
@@ -37,9 +39,10 @@ const Login = () => {
     <Container component="main" maxWidth="xs">
       <StyledPaper elevation={6}>
         <Typography component="h1" variant="h4" gutterBottom>
-          Login to SPORTY
+          Forgot Password
         </Typography>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          {message && <Typography color="primary" sx={{ mb: 2 }}>{message}</Typography>}
           {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
           <TextField
             label="Email"
@@ -50,16 +53,6 @@ const Login = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <TextField
-            label="Password"
-            variant="outlined"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
           <Button 
             type="submit" 
             fullWidth 
@@ -68,22 +61,12 @@ const Login = () => {
             sx={{ mt: 3, mb: 2 }} 
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Sending...' : 'Reset Password'}
           </Button>
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Link component={RouterLink} to="/forgot-password" variant="body2">
-              Forgot password?
-            </Link>
-          </Box>
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Link component={RouterLink} to="/register" variant="body2">
-              Don't have an account? Sign Up
-            </Link>
-          </Box>
         </Box>
       </StyledPaper>
     </Container>
   );
 };
 
-export default Login;
+export default ForgotPassword;

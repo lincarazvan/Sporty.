@@ -2,83 +2,82 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const { Op } = require('sequelize');
 const User = require('../models/user');
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+const transporter = require('../config/emailService');
 
 exports.forgotPassword = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { email } = req.body;
-
   try {
+    const { email } = req.body;
     const user = await User.findOne({ where: { email } });
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    const resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minute
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
 
     user.resetPasswordToken = resetPasswordToken;
-    user.resetPasswordExpire = resetPasswordExpire;
+    user.resetPasswordExpire = Date.now() + 3600000;
     await user.save();
 
-    const resetUrl = `${req.protocol}://${req.get('host')}/api/password/reset/${resetToken}`;
+    const resetUrl = `http://localhost:3001/reset-password/${resetToken}`;
 
-    const message = `You are receiving this email because you (or someone else) have requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
-
-    await transporter.sendMail({
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
       to: user.email,
-      subject: 'Password Reset Token',
-      text: message
-    });
+      subject: 'Password Reset Request',
+      html: `
+        <p>You requested a password reset</p>
+        <p>Please go to this link to reset your password:</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+      `
+    };
 
-    res.status(200).json({ message: 'Email sent' });
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Password reset email sent' });
   } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
-    res.status(500).send('Server Error');
+    console.error('Error in forgotPassword:', error);
+    res.status(500).json({ message: 'Error sending password reset email' });
   }
 };
 
 exports.resetPassword = async (req, res) => {
-  const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-
   try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
     const user = await User.findOne({
       where: {
-        resetPasswordToken,
+        resetPasswordToken: resetPasswordToken,
         resetPasswordExpire: { [Op.gt]: Date.now() }
       }
     });
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid token or token expired' });
+      return res.status(400).json({ message: 'Password reset token is invalid or has expired' });
     }
 
     const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(req.body.password, salt);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpire = null;
     await user.save();
 
-    res.status(200).json({ message: 'Password reset successful' });
+    res.json({ message: 'Password has been reset' });
   } catch (error) {
-    res.status(500).send('Server Error');
+    console.error('Error in resetPassword:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

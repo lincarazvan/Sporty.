@@ -20,6 +20,8 @@ import SearchPage from './pages/SearchPage';
 import SportsStats from './pages/SportsStats';
 import AdminPanel from './pages/AdminPanel';
 import SinglePostPage from './pages/SinglePostPage';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -129,6 +131,22 @@ const App = () => {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/forgot-password"
+            element={
+              <PublicRoute>
+                <ForgotPassword />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <PublicRoute>
+                <ResetPassword />
+              </PublicRoute>
+            }
+            />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

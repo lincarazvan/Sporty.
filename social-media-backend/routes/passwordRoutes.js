@@ -4,9 +4,9 @@ const passwordController = require('../controllers/passwordController');
 const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
-router.post('/forgot', [
-  check('email', 'Please include a valid email').isEmail()
-], passwordController.forgotPassword);
+router.post('/forgot', passwordController.forgotPassword);
+
+router.put('/reset/:token', passwordController.resetPassword);
 
 router.put('/reset/:token', [
   check('password', 'Password is required').isLength({ min: 6 })
