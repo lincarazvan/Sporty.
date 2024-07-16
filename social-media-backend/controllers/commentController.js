@@ -1,9 +1,23 @@
 const { Comment, User, CommentLike, Post, Notification } = require('../models');
 
+const extractMentions = (text) => {
+  const mentionRegex = /@(\w+)/g;
+  const mentions = [];
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentions.push(match[1]);
+  }
+  return mentions;
+};
+
 exports.createComment = async (req, res) => {
   try {
     const { content, postId, parentCommentId } = req.body;
     const userId = req.user.id;
+    const mentions = extractMentions(content);
+    const mentionedUsers = await User.findAll({
+      where: { username: mentions }
+    });
 
     const comment = await Comment.create({
       content,
@@ -28,6 +42,23 @@ exports.createComment = async (req, res) => {
       });
       
       global.io.to(post.userId.toString()).emit('notification', notification);
+    }
+
+    for (const user of mentionedUsers) {
+      if (user.id !== userId) {
+        const notification = await Notification.create({
+          userId: user.id,
+          type: 'mention',
+          message: `${req.user.username} te-a menționat într-un comentariu.`,
+          relatedId: postId,
+          senderId: userId,
+          senderUsername: req.user.username,
+          mentionedInType: 'comment',
+          mentionedInId: comment.id
+        });
+        
+        global.io.to(user.id.toString()).emit('notification', notification);
+      }
     }
 
     res.status(201).json(commentWithUser);

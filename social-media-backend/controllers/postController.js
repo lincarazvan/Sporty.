@@ -1,9 +1,19 @@
 const { validationResult } = require('express-validator');
-const { Post, User, Comment, Report , Sequelize } = require('../models');
+const { Post, User, Comment, Report , Sequelize, Notification } = require('../models');
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const { Op } = require('sequelize');
+
+const extractMentions = (text) => {
+  const mentionRegex = /@(\w+)/g;
+  const mentions = [];
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentions.push(match[1]);
+  }
+  return mentions;
+};
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -48,8 +58,34 @@ exports.createPost = [upload.single('image'), async (req, res) => {
     const { content } = req.body;
     const userId = req.user.id;
     const imagePath = req.file ? `uploads/${req.file.filename}` : null;
+    const mentions = extractMentions(content);
+    const mentionedUsers = await User.findAll({
+      where: { username: mentions }
+    });
 
     const post = await Post.create({ content, userId, imagePath });
+
+    for (const user of mentionedUsers) {
+      if (user.id !== userId) {
+        await Notification.create({
+          userId: user.id,
+          type: 'mention',
+          message: `${req.user.username} te-a menționat într-o postare.`,
+          relatedId: post.id,
+          senderId: userId,
+          senderUsername: req.user.username,
+          mentionedInType: 'post',
+          mentionedInId: post.id
+        });
+        
+        global.io.to(user.id.toString()).emit('notification', {
+          type: 'mention',
+          message: `${req.user.username} te-a menționat într-o postare.`,
+          postId: post.id
+        });
+      }
+    }
+
     const postWithUser = await Post.findByPk(post.id, {
       include: [{ model: User, attributes: ['id', 'username'] }]
     });
@@ -191,7 +227,6 @@ exports.deletePost = async (req, res) => {
       }
       await post.save();
   
-      // Reîncărcați postarea cu informațiile despre utilizator
       const updatedPost = await Post.findByPk(post.id, {
         include: [{ model: User, attributes: ['id', 'username'] }]
       });

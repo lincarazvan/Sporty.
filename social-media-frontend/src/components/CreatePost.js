@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button, IconButton, Typography } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, TextField, Button, IconButton, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material';
 import { PhotoCamera, Cancel } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -7,6 +7,28 @@ const CreatePost = ({ onPostCreated }) => {
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+
+  useEffect(() => {
+    const words = content.split(' ');
+    const lastWord = words[words.length - 1];
+    if (lastWord.startsWith('@') && lastWord.length > 1) {
+      fetchUserSuggestions(lastWord.slice(1));
+    } else {
+      setSuggestions([]);
+    }
+  }, [content]);
+
+  const fetchUserSuggestions = async (partial) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/users/search?query=${partial}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setSuggestions(response.data);
+    } catch (error) {
+      console.error('Error fetching user suggestions:', error);
+    }
+  };
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,6 +69,13 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
 
+  const handleSuggestionClick = (username) => {
+    const words = content.split(' ');
+    words[words.length - 1] = `@${username} `;
+    setContent(words.join(' '));
+    setSuggestions([]);
+  };
+
   return (
     <Box component="form" noValidate autoComplete="off" onSubmit={handleSubmit}>
       <TextField
@@ -59,6 +88,24 @@ const CreatePost = ({ onPostCreated }) => {
         onChange={(e) => setContent(e.target.value)}
         sx={{ mb: 2 }}
       />
+      {suggestions.length > 0 && (
+        <List sx={{ maxHeight: 200, overflow: 'auto', mb: 2 }}>
+          {suggestions.map(user => (
+            <ListItem
+              key={user.id}
+              button
+              onClick={() => handleSuggestionClick(user.username)}
+            >
+              <ListItemAvatar>
+                <Avatar src={user.avatarUrl ? `http://localhost:3000${user.avatarUrl}` : undefined} alt={user.username}>
+                  {user.username[0]}
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary={user.username} />
+            </ListItem>
+          ))}
+        </List>
+      )}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <IconButton color="primary" aria-label="upload picture" component="label">
           <input hidden accept="image/*" type="file" onChange={handleImageChange} />

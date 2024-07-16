@@ -8,6 +8,10 @@ import {
   Menu,
   MenuItem,
   Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
 } from "@mui/material";
 import { MoreVert, ThumbUp, Reply } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
@@ -32,6 +36,46 @@ const Comment = ({
   const [likes, setLikes] = useState(comment.likes);
   const [isLiked, setIsLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
+  const handleReplyChange = (e) => {
+    const newContent = e.target.value;
+    console.log('New reply content:', newContent);
+    setReplyContent(newContent);
+    
+    const words = newContent.split(' ');
+    const lastWord = words[words.length - 1];
+    console.log('Last word:', lastWord);
+    if (lastWord.startsWith('@') && lastWord.length > 1) {
+      console.log('Fetching suggestions for:', lastWord.slice(1));
+      fetchUserSuggestions(lastWord.slice(1));
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const fetchUserSuggestions = async (partial) => {
+    try {
+      console.log('Fetching suggestions for:', partial);
+      const response = await axios.get(`http://localhost:3000/api/users/search?query=${partial}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      console.log('Suggestions received:', response.data);
+      setSuggestions(response.data);
+    } catch (error) {
+      console.error('Error fetching user suggestions:', error);
+    }
+  };
+
+  const handleSuggestionClick = (username) => {
+    console.log('Suggestion clicked:', username);
+    const words = replyContent.split(' ');
+    words[words.length - 1] = `@${username} `;
+    const newContent = words.join(' ');
+    console.log('New content:', newContent);
+    setReplyContent(newContent);
+    setSuggestions([]);
+  };
 
   const handleEditComment = async () => {
     try {
@@ -118,6 +162,25 @@ const Comment = ({
     }
   };
 
+  const renderContent = (content) => {
+    return content.split(/(\s+)/).map((word, index) => {
+      if (word.startsWith("@")) {
+        const username = word.slice(1);
+        return (
+          <RouterLink
+            key={index}
+            to={`/profile/${username}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: 'blue', textDecoration: 'none' }}
+          >
+            {word}
+          </RouterLink>
+        );
+      }
+      return word;
+    });
+  };
+
   const handleLike = useCallback(async () => {
     if (isLiking) return;
     setIsLiking(true);
@@ -178,7 +241,7 @@ const Comment = ({
               <Button onClick={() => setEditMode(false)} size="small" sx={{ mt: 1, ml: 1 }}>Cancel</Button>
             </Box>
           ) : (
-            <Typography variant="body2">{comment.content}</Typography>
+            <Typography variant="body2">{renderContent(comment.content)}</Typography>
           )}
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
             <IconButton
@@ -203,11 +266,27 @@ const Comment = ({
                 multiline
                 rows={2}
                 value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
+                onChange={handleReplyChange}
                 variant="outlined"
                 size="small"
                 placeholder="Write a reply..."
               />
+              {suggestions.length > 0 && (
+                <List>
+                  {suggestions.map(user => (
+                    <ListItem
+                      key={user.id}
+                      button
+                      onClick={() => handleSuggestionClick(user.username)}
+                    >
+                      <ListItemAvatar>
+                        <Avatar src={user.avatarUrl} alt={user.username} />
+                      </ListItemAvatar>
+                      <ListItemText primary={user.username} />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
               <Button onClick={handleReply} size="small" sx={{ mt: 1 }}>Reply</Button>
               <Button onClick={() => setReplyMode(false)} size="small" sx={{ mt: 1, ml: 1 }}>Cancel</Button>
             </Box>

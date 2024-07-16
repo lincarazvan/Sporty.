@@ -12,6 +12,10 @@ import {
   Link,
   Menu,
   MenuItem,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from "@mui/material";
 import {
   Favorite,
@@ -42,6 +46,38 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
   const [newImage, setNewImage] = useState(null);
   const [newImagePreview, setNewImagePreview] = useState(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
+  const handleCommentChange = (e) => {
+    const newContent = e.target.value;
+    setNewComment(newContent);
+
+    const words = newContent.split(' ');
+    const lastWord = words[words.length - 1];
+    if (lastWord.startsWith('@') && lastWord.length > 1) {
+      fetchUserSuggestions(lastWord.slice(1));
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const fetchUserSuggestions = async (partial) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/users/search?query=${partial}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setSuggestions(response.data);
+    } catch (error) {
+      console.error('Error fetching user suggestions:', error);
+    }
+  };
+
+  const handleSuggestionClick = (username) => {
+    const words = newComment.split(' ');
+    words[words.length - 1] = `@${username} `;
+    setNewComment(words.join(' '));
+    setSuggestions([]);
+  };
 
   const fetchLikes = useCallback(async () => {
     try {
@@ -172,21 +208,32 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
   };
 
   const renderContent = (content) => {
-    return content.split(" ").map((word, index) => {
-      if (word.startsWith("#")) {
+    return content.split(/(\s+)/).map((word, index) => {
+      if (word.startsWith("@")) {
+        const username = word.slice(1);
         return (
-          <Link
+          <RouterLink
             key={index}
-            component={RouterLink}
-            to={`/hashtag/${word.slice(1)}`}
-            color="primary"
+            to={`/profile/${username}`}
             onClick={(e) => e.stopPropagation()}
+            style={{ color: 'blue', textDecoration: 'none' }}
           >
-            {word}{" "}
-          </Link>
+            {word}
+          </RouterLink>
+        );
+      } else if (word.startsWith("#")) {
+        return (
+          <RouterLink
+            key={index}
+            to={`/hashtag/${word.slice(1)}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: 'blue', textDecoration: 'none' }}
+          >
+            {word}
+          </RouterLink>
         );
       }
-      return word + " ";
+      return word;
     });
   };
 
@@ -328,7 +375,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
         ) : (
           <>
             <Typography variant="body1" gutterBottom>
-              {post.content}
+              {renderContent(post.content)}
             </Typography>
             {post.imagePath && (
               <CardMedia
@@ -371,9 +418,25 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
               variant="outlined"
               placeholder="Add a comment..."
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
+              onChange={handleCommentChange}
               sx={{ mb: 1 }}
             />
+            {suggestions.length > 0 && (
+              <List>
+                {suggestions.map(user => (
+                  <ListItem
+                    key={user.id}
+                    button
+                    onClick={() => handleSuggestionClick(user.username)}
+                  >
+                    <ListItemAvatar>
+                      <Avatar src={user.avatarUrl} alt={user.username} />
+                    </ListItemAvatar>
+                    <ListItemText primary={user.username} />
+                  </ListItem>
+                ))}
+              </List>
+            )}
             <Button variant="contained" onClick={handleAddComment}>
               Post Comment
             </Button>

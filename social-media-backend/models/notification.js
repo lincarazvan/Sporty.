@@ -29,6 +29,14 @@ const Notification = sequelize.define('Notification', {
   senderUsername: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  mentionedInType: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  mentionedInId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
   }
 });
 
