@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Typography, List, ListItem, ListItemText, Divider } from '@mui/material';
+import { Typography, List, ListItem, ListItemText, Divider, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
@@ -45,9 +45,30 @@ const NotificationsPage = () => {
     }
   };
 
+  const handleDeleteAllNotifications = async () => {
+    try {
+      await axios.delete('http://localhost:3000/api/notifications', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setNotifications([]);
+    } catch (error) {
+      console.error('Error deleting notifications:', error);
+    }
+  };
+
   return (
     <>
-      <Typography variant="h4" gutterBottom>Notifications</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4" gutterBottom>Notifications</Typography>
+        <Button 
+          variant="contained" 
+          color="secondary" 
+          onClick={handleDeleteAllNotifications}
+          disabled={notifications.length === 0}
+        >
+          Clear All Notifications
+        </Button>
+      </Box>
       <List>
         {notifications.length === 0 ? (
           <ListItem>

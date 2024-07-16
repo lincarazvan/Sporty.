@@ -70,3 +70,15 @@ exports.getUnreadCount = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+exports.deleteAllNotifications = async (req, res) => {
+  try {
+    await Notification.destroy({
+      where: { userId: req.user.id }
+    });
+    res.status(200).json({ message: 'All notifications deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting notifications:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
