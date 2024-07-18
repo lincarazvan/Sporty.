@@ -36,7 +36,7 @@ const NotificationsPage = () => {
   };
 
   const handleNotificationClick = (notification) => {
-    switch(notification.type) {
+    switch (notification.type) {
       case 'follow':
         if (notification.senderUsername) {
           navigate(`/profile/${notification.senderUsername}`);
@@ -74,9 +74,9 @@ const NotificationsPage = () => {
     <>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4" gutterBottom>Notifications</Typography>
-        <Button 
-          variant="contained" 
-          color="secondary" 
+        <Button
+          variant="contained"
+          color="secondary"
           onClick={handleDeleteAllNotifications}
           disabled={notifications.length === 0}
         >
@@ -91,14 +91,17 @@ const NotificationsPage = () => {
         ) : (
           notifications.map((notification, index) => (
             <React.Fragment key={notification.id}>
-              <ListItem 
-                button 
+              <ListItem
+                button
                 onClick={() => handleNotificationClick(notification)}
                 alignItems="flex-start"
               >
                 <ListItemAvatar>
-                  <Avatar src={notification.senderAvatarUrl} alt={notification.senderUsername}>
-                    {notification.senderUsername ? notification.senderUsername[0] : '?'}
+                  <Avatar
+                    src={notification.senderAvatarUrl ? `http://localhost:3000${notification.senderAvatarUrl}` : "/default-avatar.png"}
+                    alt={notification.senderUsername || "User"}
+                  >
+                    {(!notification.senderAvatarUrl && notification.senderUsername) ? notification.senderUsername[0].toUpperCase() : null}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText

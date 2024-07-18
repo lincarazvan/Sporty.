@@ -152,8 +152,8 @@ const ChatSidebar = ({
             <IconButton onClick={onBackToList} edge="start">
               <ArrowBackIcon />
             </IconButton>
-            <Avatar 
-              src={selectedConversation.avatarUrl} 
+            <Avatar
+              src={selectedConversation.avatarUrl ? `http://localhost:3000${selectedConversation.avatarUrl}` : "/default-avatar.png"}
               alt={selectedConversation.username}
               sx={{ width: 40, height: 40, mr: 2 }}
             />
@@ -206,7 +206,7 @@ const ChatSidebar = ({
             <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
               <EmojiEmotionsIcon />
             </IconButton>
-            
+
             <TextField
               fullWidth
               variant="outlined"

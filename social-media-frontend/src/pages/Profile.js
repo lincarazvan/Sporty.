@@ -58,6 +58,7 @@ const Profile = () => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
 
+
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -65,10 +66,21 @@ const Profile = () => {
           `http://localhost:3000/api/users/profile/${username}`
         );
         setProfile(profileRes.data);
+        console.log("Profile data:", profileRes.data);
+  
         const postsRes = await axios.get(
           `http://localhost:3000/api/posts/user/${profileRes.data.id}`
         );
-        setPosts(postsRes.data);
+        const postsWithUserInfo = postsRes.data.map(post => ({
+          ...post,
+          User: {
+            ...post.User,
+            avatarUrl: profileRes.data.avatarUrl
+          }
+        }));
+        setPosts(postsWithUserInfo);
+        console.log("Posts with user info:", postsWithUserInfo);
+
         const followersRes = await axios.get(
           `http://localhost:3000/api/follow/followers/${profileRes.data.id}`
         );
@@ -78,6 +90,7 @@ const Profile = () => {
           `http://localhost:3000/api/follow/following/${profileRes.data.id}`
         );
         setFollowing(followingRes.data);
+
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
@@ -160,9 +173,15 @@ const Profile = () => {
       <Typography variant="h6" gutterBottom>
         Posts
       </Typography>
-      {posts.map((post) => (
-        <Post key={post.id} post={post} />
-      ))}
+      {posts.map((post) => {
+  console.log("Post being mapped:", post);
+  return (
+    <Post 
+      key={post.id} 
+      post={post}  // Schimbat aici
+    />
+  );
+})}
 
       <StyledModal
         open={modalOpen}

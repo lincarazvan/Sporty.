@@ -7,6 +7,7 @@ import {
 import axios from 'axios';
 import { format } from 'date-fns';
 import Standings from './Standings';
+import DetailedMatchStats from '../components/DetailedMatchStats';
 
 const FixtureListItem = ({ fixture }) => (
   <ListItem>
@@ -127,6 +128,7 @@ const SportsStats = () => {
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="sports stats tabs">
           <Tab label="Upcoming Fixtures" />
           <Tab label="Standings" />
+          <Tab label="Detailed Match Stats" />
         </Tabs>
       </Box>
       <TabPanel value={tabValue} index={0}>
@@ -177,6 +179,9 @@ const SportsStats = () => {
       </TabPanel>
       <TabPanel value={tabValue} index={1}>
         <Standings />
+      </TabPanel>
+      <TabPanel value={tabValue} index={2}>
+        <DetailedMatchStats />
       </TabPanel>
     </Box>
   );

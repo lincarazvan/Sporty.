@@ -47,6 +47,17 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
   const [newImagePreview, setNewImagePreview] = useState(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const avatarUrl = post.User?.avatarUrl 
+  ? `http://localhost:3000${post.User.avatarUrl}` 
+  : "/default-avatar.png";
+
+console.log("Avatar URL:", avatarUrl);
+    console.log("Post data received:", {
+      id: post.id,
+      content: post.content,
+      User: post.User,
+      avatarUrl: post.User?.avatarUrl
+    });
 
   const handleCommentChange = (e) => {
     const newContent = e.target.value;
@@ -258,7 +269,7 @@ const Post = ({ post, onPostUpdate, onPostDelete }) => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar
+          <Avatar
               src={post.User && post.User.avatarUrl ? `http://localhost:3000${post.User.avatarUrl}` : undefined}
               alt={post.User && post.User.username ? post.User.username : "User"}
               sx={{ mr: 2 }}

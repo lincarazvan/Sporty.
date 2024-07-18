@@ -127,3 +127,85 @@ exports.updateCache = async () => {
     console.error('Error updating cache:', error);
   }
 };
+
+exports.getTopMatches = async (req, res) => {
+  try {
+    const response = await axios.get(`${API_URL}/fixtures`, {
+      params: { 
+        league: '39', // Premier League
+        season: '2023', // Sezonul curent
+        last: 10 // Ultimele 10 meciuri
+      },
+      headers: {
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+        'x-rapidapi-key': API_KEY
+      }
+    });
+    res.json(response.data.response);
+  } catch (error) {
+    console.error('Error fetching top matches:', error);
+    res.status(500).json({ message: 'Error fetching top matches' });
+  }
+};
+
+exports.getMatchStats = async (req, res) => {
+  const { matchId } = req.params;
+  try {
+    const response = await axios.get(`${API_URL}/fixtures/statistics`, {
+      params: { fixture: matchId },
+      headers: {
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+        'x-rapidapi-key': API_KEY
+      }
+    });
+    res.json(response.data.response);
+  } catch (error) {
+    console.error('Error fetching match statistics:', error);
+    res.status(500).json({ message: 'Error fetching match statistics' });
+  }
+};
+
+exports.getRecentStats = async (req, res) => {
+  const { matchId } = req.params;
+  try {
+    const matchDetails = await axios.get(`${API_URL}/fixtures`, {
+      params: { id: matchId },
+      headers: {
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+        'x-rapidapi-key': API_KEY
+      }
+    });
+    const { teams } = matchDetails.data.response[0];
+
+    const [homeTeamStats, awayTeamStats] = await Promise.all([
+      axios.get(`${API_URL}/fixtures`, {
+        params: { team: teams.home.id, last: 5 },
+        headers: {
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-rapidapi-key': API_KEY
+        }
+      }),
+      axios.get(`${API_URL}/fixtures`, {
+        params: { team: teams.away.id, last: 5 },
+        headers: {
+          'x-rapidapi-host': 'v3.football.api-sports.io',
+          'x-rapidapi-key': API_KEY
+        }
+      })
+    ]);
+
+    res.json({
+      homeTeam: {
+        name: teams.home.name,
+        recentMatches: homeTeamStats.data.response
+      },
+      awayTeam: {
+        name: teams.away.name,
+        recentMatches: awayTeamStats.data.response
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching recent statistics:', error);
+    res.status(500).json({ message: 'Error fetching recent statistics' });
+  }
+};

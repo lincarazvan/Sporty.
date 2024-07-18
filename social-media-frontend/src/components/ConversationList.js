@@ -5,24 +5,24 @@ import AddIcon from '@mui/icons-material/Add';
 import { styled } from '@mui/material/styles';
 
 const StyledBox = styled(Box)(({ theme }) => ({
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    backgroundColor: theme.palette.background.paper,
-  }));
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  backgroundColor: theme.palette.background.paper,
+}));
 
 const SearchBox = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
   borderBottom: `1px solid ${theme.palette.divider}`,
 }));
 
-const ConversationList = ({ 
-  conversations, 
-  searchTerm, 
-  setSearchTerm, 
-  onSelectConversation, 
+const ConversationList = ({
+  conversations,
+  searchTerm,
+  setSearchTerm,
+  onSelectConversation,
   selectedConversationId,
-  onNewConversation 
+  onNewConversation
 }) => {
   return (
     <StyledBox>
@@ -61,10 +61,13 @@ const ConversationList = ({
             selected={selectedConversationId === conversation.id}
           >
             <ListItemAvatar>
-              <Avatar src={conversation.avatarUrl} alt={conversation.username} />
+              <Avatar
+                src={conversation.avatarUrl ? `http://localhost:3000${conversation.avatarUrl}` : "/default-avatar.png"}
+                alt={conversation.username}
+              />
             </ListItemAvatar>
-            <ListItemText 
-              primary={conversation.username} 
+            <ListItemText
+              primary={conversation.username}
               secondary={conversation.lastMessage ? conversation.lastMessage.substring(0, 30) + '...' : ''}
             />
           </ListItem>

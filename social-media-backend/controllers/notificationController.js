@@ -7,7 +7,7 @@ exports.getNotifications = async (req, res) => {
       include: [{
         model: User,
         as: 'sender',
-        attributes: ['id', 'username']
+        attributes: ['id', 'username', 'avatarUrl']
       }],
       order: [['createdAt', 'DESC']]
     });
@@ -15,7 +15,8 @@ exports.getNotifications = async (req, res) => {
     const formattedNotifications = notifications.map(notification => ({
       ...notification.toJSON(),
       senderId: notification.sender ? notification.sender.id : null,
-      senderUsername: notification.sender ? notification.sender.username : null
+      senderUsername: notification.sender ? notification.sender.username : null,
+      senderAvatarUrl: notification.sender ? notification.sender.avatarUrl : null
     }));
 
     res.json(formattedNotifications);
